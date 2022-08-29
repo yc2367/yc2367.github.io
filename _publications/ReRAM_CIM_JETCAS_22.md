@@ -1,7 +1,7 @@
 ---
 title: "An Overview of Processing-in-Memory Circuits for Artificial Intelligence and Machine Learning"
 collection: publications
-permalink: /publication/ReRAM_CIM_JETCAS_22.md
+permalink: /publication/ReRAM_CIM_JETCAS_22
 date: 2022
 venue: 'IEEE Journal on Emerging and Selected Topics in Circuits and Systems (JETCAS)'
 paperurl: 'https://ieeexplore.ieee.org/document/9737485'
