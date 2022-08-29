@@ -33,6 +33,18 @@ p {
       </div>
     {% endif %}
 
+  <!-- Commented by YuzongChen on 29 Aug. 2022 -->
+  <!--
+    <h2 class="archive__item-title" itemprop="headline">
+      {% if post.link %}
+        <a href="{{ post.link }}">{{ title }}</a> <a href="{{ post.paperurl }}"><i class="fa fa-link" aria-hidden="true" title="permalink"></i><span class="sr-only">Permalink</span></a>
+      {% else %}
+        <a href="{{ post.paperurl }}">{{ title }}</a>
+      {% endif %}
+    </h2>
+  -->
+  
+
     <h2>
         <p>{{ title }}</p>
     </h2> 
@@ -52,7 +64,7 @@ p {
         {% elsif post.collection == 'publications' %}
         <!-- Modified by YuzongChen on 29 Aug. 2022-->
         <!-- Future code link can be added after the Paper link -->
-          <p ><i>{{ post.venue }}</i>, {{ post.date | default: "1900-01-01" | date: "%Y" }} <a href="{{ post.paperurl }}">Code</a></p>
+          <p ><i>{{ post.venue }}</i>, {{ post.date | default: "1900-01-01" | date: "%Y" }} <a href="{{ post.paperurl }}">Paper</a></p>
         {% elsif post.date %}
          <p class="page__date"><strong><i class="fa fa-fw fa-calendar" aria-hidden="true"></i> {{ site.data.ui-text[site.locale].date_label | default: "Published:" }}</strong> <time datetime="{{ post.date | default: "1900-01-01" | date_to_xmlschema }}">{{ post.date | default: "1900-01-01" | date: "%B %d, %Y" }}</time></p>
         {% endif %}
