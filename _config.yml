@@ -7,7 +7,7 @@
 
 # Site Settings
 locale                   : "en-US"
-title                    : "Yuzong Chen"
+title                    : "Home"
 title_separator          : "-"
 name                     : &name "Yuzong Chen"
 description              : &description "PhD Candicate, Cornell Tech"
