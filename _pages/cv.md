@@ -16,15 +16,15 @@ Education
 
 Work Experience
 ======
-* Feb. 2020 - Aug. 2021: Project Officer
-  * Nanyang Technological University, Singapore
-  * Research Topic: Computing in-memory (CIM) circuit design.
-  * Supervisor: [Prof. Tony Tae Hyoung Kim](https://sites.google.com/view/tonykim)
-
 * Sept. 2021 - Jul. 2022: Research Engineer
   * National University of Singapore
   * Research Topic: Switched-capacitor power amplifier (SCPA).
   * Supervisor: [Prof. Heng Chun-Huat](https://online.ece.nus.edu.sg/staff/web.asp?id=elehch)
+  
+* Feb. 2020 - Aug. 2021: Project Officer
+  * Nanyang Technological University, Singapore
+  * Research Topic: Computing in-memory (CIM) circuit design.
+  * Supervisor: [Prof. Tony Tae Hyoung Kim](https://sites.google.com/view/tonykim)
 
 <!--
 Publications
