@@ -72,7 +72,7 @@ redirect_from:
 
 
 <!-- Line Breal -->
-<span style="margin-bottom: 3em;"></span>
+<span style="display: block; margin-bottom: 3em;"></span>
 
 
 <span style="display: inline-block; width: 120px;"><img class="img_float" src="https://yc2367.github.io/files/NUS.png"></span>
