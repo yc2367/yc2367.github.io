@@ -30,7 +30,7 @@ redirect_from:
 }
 .img_float {
   height:          50px; 
-  margin-top:      0px;
+  margin-top:     -10px;
   margin-bottom:  -25px;
   float:           left;
 }
@@ -77,7 +77,7 @@ redirect_from:
 
 <ul>
   <li>
-    <span class="span_university"><strong> National University of Singapore </strong>, Singapore </span>
+    <span class="span_university"><strong>National University of Singapore</strong>, Singapore </span>
     <span class="span_period"> Sept. 2021 - Jul. 2022 </span> 
   <ul>
     <li class="li_1"> Research Engineer</li>
@@ -93,7 +93,7 @@ redirect_from:
 
 <ul>
   <li>
-    <span class="span_university"><strong> Nanyang Technological University </strong>, Singapore </span>
+    <span class="span_university"><strong>Nanyang Technological University</strong>, Singapore </span>
     <span class="span_period"> Feb. 2020 - Aug. 2021 </span>
   <ul>
     <li class="li_1"> Project Officer </li>
