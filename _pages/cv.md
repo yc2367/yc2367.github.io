@@ -24,14 +24,14 @@ redirect_from:
 }
 .img_float {
   float: left;
-  margin-left: 380px;
+  margin-left: 370px;
 }
 </style>
 
 Education
 ======
 <!-- Fine tune img height and margin-bottom for better looking -->
-<img class="img_float" style="height: 50px; margin-bottom: -45px;" src="https://yc2367.github.io/files/Cornell.png">
+<img class="img_float" style="height: 50px; margin-bottom: -50px;" src="https://yc2367.github.io/files/Cornell.png">
 <ul>
   <li><span class="span_1"><strong>Cornell University</strong>, USA  </span> 
     <br><span class="span_2"> 2022 - Present </span>
