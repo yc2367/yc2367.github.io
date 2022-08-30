@@ -18,7 +18,7 @@ redirect_from:
 }
 .h2_title {
   margin-top:     0px;
-  margin-bottom:  -0px;
+  margin-bottom:  -5px;
 }
 .span_university { /* Span style for university name */
   display: inline-block;
@@ -44,7 +44,7 @@ redirect_from:
 <ul>
   <li>
     <span class="span_university"><strong>Cornell University</strong>, USA </span> 
-    <span class="span_period"> 2022 - Present </span>
+    <span class="span_period"> Aug. 2022 - Present </span>
   <ul>
     <li class="li_1"> Ph.D. in Electrical and Computer Engineering </li>
   </ul>
@@ -57,7 +57,7 @@ redirect_from:
 <ul>
   <li>
     <span class="span_university"><strong>Nanyang Technological University</strong>, Singapore </span> 
-    <span class="span_period"> 2015 - 2019 </span>
+    <span class="span_period"> Aug. 2015 - Jun. 2019 </span>
   <ul>
     <li class="li_1"> B.Eng. in Electrical & Electronic Engineering </li>
   </ul>
