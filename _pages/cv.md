@@ -35,7 +35,7 @@ redirect_from:
 .img_float {
   height:          50px; 
   margin-top:      0px;
-  margin-bottom:  -20px;
+  margin-bottom:  -22px;
   float:           left;
 }
 </style>
