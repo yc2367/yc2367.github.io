@@ -16,15 +16,16 @@ ul li span {
 }
 img {
   float: left;
+  margin-left:  600px;
 }
 </style>
 
 Education
 ======
 <ul>
-  <img style="height:50px; margin-left:520px; margin-bottom:-45px" src="https://yc2367.github.io/files/Cornell.png">
+  <!-- Fine tune img height and margin-bottom for better looking -->
+  <img style="height:50px; margin-bottom:-45px" src="https://yc2367.github.io/files/Cornell.png">
   <li><span><strong>Cornell University</strong>, USA </span> 2022 - Present 
-  <!-- Fine tune img height and margin-right for better looking -->
     <ul>
       <li style="margin-left: -15px;"> Ph.D. in Electrical and Computer Engineering </li>
     </ul>
@@ -35,9 +36,9 @@ Education
 </ul>
 
 <ul>
-  <img style="height: 50px; margin-left: 520px; margin-bottom:-45px;" src="https://yc2367.github.io/files/NTU.png">
+  <!-- Fine tune img height and margin-bottom for better looking -->
+  <img style="height: 50px; margin-bottom:-45px;" src="https://yc2367.github.io/files/NTU.png">
   <li><span><strong>Nanyang Technological University</strong>, Singapore </span> 2015 - 2019 
-  <!-- Fine tune img height and margin-right for better looking -->
     <ul>
       <li style="margin-left: -15px;"> B.Eng. in Electrical & Electronic Engineering </li>
     </ul>
