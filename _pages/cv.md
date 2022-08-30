@@ -11,9 +11,12 @@ redirect_from:
 
 <!-- Naming CSS Style -->
 <style>
+.li_1{
+  margin-left: -20px;
+}
 .span_1 {
   display: inline-block;
-  width: 430px;
+  width: 450px;
 }
 .span_2 {
   display: inline-block;
@@ -21,35 +24,37 @@ redirect_from:
 }
 .img_float {
   float: left;
-  margin-left: 560px;
+  margin-left: 590px;
 }
 </style>
 
 Education
 ======
+<!-- Fine tune img height and margin-bottom for better looking -->
+<img class="img_float" style="height: 50px; margin-bottom: -45px;" src="https://yc2367.github.io/files/Cornell.png">
 <ul>
-  <!-- Fine tune img height and margin-bottom for better looking -->
-  <img class="img_float" style="height: 50px; margin-bottom: -45px;" src="https://yc2367.github.io/files/Cornell.png">
-  <li><span class="span_1"><strong>Cornell University</strong>, USA </span> <span class="span_2"> 2022 - Present </span>
-    <ul>
-      <li style="margin-left: -15px;"> Ph.D. in Electrical and Computer Engineering </li>
-    </ul>
-    <ul>
-      <li style="margin-left: -15px;"> Advisor: Prof. Mohamed Abdelfattah </li>
-    </ul>
+  <li><span class="span_1"><strong>Cornell University</strong>, USA  </span> 
+    <br><span class="span_2"> 2022 - Present </span>
+  <ul>
+    <li class="li_1"> Ph.D. in Electrical and Computer Engineering </li>
+  </ul>
+  <ul>
+    <li class="li_1"> Advisor: Prof. Mohamed Abdelfattah </li>
+  </ul>
   </li>
 </ul>
 
+<!-- Fine tune img height and margin-bottom for better looking -->
+<img class="img_float" style="height: 45px; margin-bottom: -45px;" src="https://yc2367.github.io/files/NTU.png">
 <ul>
-  <!-- Fine tune img height and margin-bottom for better looking -->
-  <img class="img_float" style="height: 50px; margin-bottom: -45px;" src="https://yc2367.github.io/files/NTU.png">
-  <li><span class="span_1"><strong>Nanyang Technological University</strong>, Singapore </span> <span class="span_2"> 2015 - 2019 </span>
-    <ul>
-      <li style="margin-left: -15px;"> B.Eng. in Electrical & Electronic Engineering </li>
-    </ul>
-    <ul>
-      <li style="margin-left: -15px;"> GPA: 4.74 / 5.00, Honours (Highest Distinction) </li>
-    </ul>
+  <li><span class="span_1"><strong>Nanyang Technological University</strong>, Singapore </span> 
+  <br><span class="span_2"> 2015 - 2019 </span>
+  <ul>
+    <li class="li_1"> B.Eng. in Electrical & Electronic Engineering </li>
+  </ul>
+  <ul>
+    <li class="li_1"> GPA: 4.74 / 5.00, Honours (Highest Distinction) </li>
+  </ul>
   </li>
 </ul>
 
