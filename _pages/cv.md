@@ -12,7 +12,7 @@ redirect_from:
 <style>
 ul li span {
   display: inline-block;
-  width: 450px;
+  width: 55%;
 }
 </style>
 
