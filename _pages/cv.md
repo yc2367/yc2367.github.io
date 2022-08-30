@@ -25,7 +25,7 @@ redirect_from:
 }
 .span_university { /* Span style for university name */
   display: inline-block;
-  width: 450px;
+  width: 470px;
 }
 .span_period { /* Span style for university attend period */
   display: inline-block;
