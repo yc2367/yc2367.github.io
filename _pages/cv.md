@@ -29,7 +29,7 @@ redirect_from:
 }
 .img_float {
   height:          50px; 
-  margin-bottom:   -30px;
+  margin-bottom:   -45px;
   float:           left;
 }
 </style>
