@@ -13,10 +13,10 @@ Education
 ======
 |                                                   |                         |
 |---------------------------------------------------|-------------------------|
-|Cornell University, USA                            |   2022 - Present        |
+|Cornell University, USA                            |   2022  Present        |
 |Ph.D. in Electrical and Computer Engineering       |                         |
 |                                                   |                         |
-|Nanyang Technological University, Singapore        |   2015 - 2019           |
+|Nanyang Technological University, Singapore        |   2015  2019           |
 |B.Eng. in Electrical & Electronic Engineering      |                         |
 
 Work Experience
