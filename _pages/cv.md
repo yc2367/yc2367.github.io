@@ -11,11 +11,11 @@ redirect_from:
 
 Education
 ======
-* Cornell University, USA &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2022 - Present        
+* Cornell University, USA <p style='margin-right: 20px;'> 2022 - Present </p>     
   * Ph.D. in Electrical and Computer Engineering
   * Advisor: Prof. Mohamed Abdelfattah
 
-* Nanyang Technological University, Singapore &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2015 - 2019  
+* Nanyang Technological University, Singapore <p style='margin-right: 20px;'> 2015 - 2019 </p> 
   * B.Eng. in Electrical & Electronic Engineering
 
 Work Experience
