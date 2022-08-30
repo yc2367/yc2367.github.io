@@ -35,7 +35,7 @@ redirect_from:
 .img_float {
   height:          50px; 
   margin-top:      0px;
-  margin-bottom:  -25px;
+  margin-bottom:  -20px;
   float:           left;
 }
 </style>
@@ -56,7 +56,7 @@ redirect_from:
     <li class="li_2"> Ph.D. in Electrical and Computer Engineering </li>
   </ul>
   <ul>
-    <li class="li_2"> Advisor: Prof. Mohamed Abdelfattah </li>
+    <li class="li_2"> Advisor: <a href="https://www.mohsaied.com/">Prof. Mohamed Abdelfattah</a></li>
   </ul>
   </li>
 </ul>
@@ -94,7 +94,7 @@ redirect_from:
     <li class="li_2"> Research Topic: Switched-Capacitor Power Amplifier </li>
   </ul>
   <ul>
-    <li class="li_2"> Advisor: Prof. Heng Chun-Huat </li>
+    <li class="li_2"> Advisor: <a href="https://online.ece.nus.edu.sg/staff/web.asp?id=elehch">Prof. Heng Chun-Huat</a></li>
   </ul>
   </li>
 </ul>
@@ -110,7 +110,7 @@ redirect_from:
     <li class="li_2"> Research Topic: Computing In-Memory </li>
   </ul>
   <ul>
-    <li class="li_2"> Advisor: Prof. Tony Tae Hyoung Kim </li>
+    <li class="li_2"> Advisor: <a href="https://sites.google.com/view/tonykim">Prof. Tony Tae Hyoung Kim</a></li>
   </ul>
   </li>
 </ul>
