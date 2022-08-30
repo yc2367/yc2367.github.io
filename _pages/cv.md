@@ -16,7 +16,7 @@ redirect_from:
 }
 .span_1 {
   display: inline-block;
-  width: 450px;
+  width: 350px;
 }
 .span_2 {
   display: inline-block;
@@ -24,7 +24,7 @@ redirect_from:
 }
 .img_float {
   float: left;
-  margin-left: 590px;
+  margin-left: 380px;
 }
 </style>
 
