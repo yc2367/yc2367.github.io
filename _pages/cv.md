@@ -11,7 +11,10 @@ redirect_from:
 
 <!-- Naming CSS Style -->
 <style>
-.li_1{
+.li_1 {
+  margin-left:    -10px;
+}
+.li_2 {
   margin-left:    -20px;
   margin-top:      -5px;
   margin-bottom:   -5px;
@@ -42,32 +45,33 @@ redirect_from:
 <h2 class="h2_title"> Education </h2>
 
 <ul>
-  <li>
+  <li class="li_1">
     <span class="span_university"><strong>Cornell University</strong>, USA </span> 
     <span class="span_period"> Aug. 2022 - Present </span>
   <ul>
-    <li class="li_1"> Ph.D. in Electrical and Computer Engineering </li>
+    <li class="li_2"> Ph.D. in Electrical and Computer Engineering </li>
   </ul>
   <ul>
-    <li class="li_1"> Advisor: Prof. Mohamed Abdelfattah </li>
+    <li class="li_2"> Advisor: Prof. Mohamed Abdelfattah </li>
   </ul>
   </li>
 </ul>
 
 <ul>
-  <li>
+  <li class="li_1">
     <span class="span_university"><strong>Nanyang Technological University</strong>, Singapore </span> 
     <span class="span_period"> Aug. 2015 - Jun. 2019 </span>
   <ul>
-    <li class="li_1"> B.Eng. in Electrical & Electronic Engineering </li>
+    <li class="li_2"> B.Eng. in Electrical & Electronic Engineering </li>
   </ul>
   <ul>
-    <li class="li_1"> GPA: 4.74 / 5.00, Honours (Highest Distinction) </li>
+    <li class="li_2"> GPA: 4.74 / 5.00, Honours (Highest Distinction) </li>
   </ul>
   </li>
 </ul>
 
 
+<!-- Line Breal -->
 <span style="margin-top: -10px; margin-bottom: -10px;"></span>
 
 
@@ -76,33 +80,33 @@ redirect_from:
 <h2 class="h2_title"> Research Experience </h2>
 
 <ul>
-  <li>
+  <li class="li_1">
     <span class="span_university"><strong>National University of Singapore</strong>, Singapore </span>
     <span class="span_period"> Sept. 2021 - Jul. 2022 </span> 
   <ul>
-    <li class="li_1"> Research Engineer</li>
+    <li class="li_2"> Research Engineer</li>
   </ul>
   <ul>
-    <li class="li_1"> Research Topic: Switched-Capacitor Power Amplifier </li>
+    <li class="li_2"> Research Topic: Switched-Capacitor Power Amplifier </li>
   </ul>
   <ul>
-    <li class="li_1"> Advisor: Prof. Heng Chun-Huat </li>
+    <li class="li_2"> Advisor: Prof. Heng Chun-Huat </li>
   </ul>
   </li>
 </ul>
 
 <ul>
-  <li>
+  <li class="li_1">
     <span class="span_university"><strong>Nanyang Technological University</strong>, Singapore </span>
     <span class="span_period"> Feb. 2020 - Aug. 2021 </span>
   <ul>
-    <li class="li_1"> Project Officer </li>
+    <li class="li_2"> Project Officer </li>
   </ul>
   <ul>
-    <li class="li_1"> Research Topic: Computing In-Memory </li>
+    <li class="li_2"> Research Topic: Computing In-Memory </li>
   </ul>
   <ul>
-    <li class="li_1"> Advisor: Prof. Tony Tae Hyoung Kim </li>
+    <li class="li_2"> Advisor: Prof. Tony Tae Hyoung Kim </li>
   </ul>
   </li>
 </ul>
