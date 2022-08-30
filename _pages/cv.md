@@ -13,7 +13,7 @@ redirect_from:
 <style>
 .li_1 {
   margin-left:    -10px;
-  margin-top:     -10px;
+  margin-top:     -6px;
 }
 .li_2 {
   margin-left:    -20px;
