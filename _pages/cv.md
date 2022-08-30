@@ -13,7 +13,7 @@ redirect_from:
 <style>
 .li_1 {
   margin-left:    -10px;
-  margin-top:      -3px;
+  margin-top:     -10px;
 }
 .li_2 {
   margin-left:    -20px;
@@ -22,7 +22,7 @@ redirect_from:
 }
 .h2_title {
   margin-top:     0px;
-  margin-bottom:  -5px;
+  margin-bottom:  0px;
 }
 .span_university { /* Span style for university name */
   display: inline-block;
