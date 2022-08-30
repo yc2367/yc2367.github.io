@@ -31,13 +31,13 @@ redirect_from:
 .img_float {
   height:          50px; 
   margin-top:      0px;
-  margin-bottom:  -20px;
+  margin-bottom:  -25px;
   float:           left;
 }
 </style>
 
 
-<span style="display: inline-block; width: 55px;"><img class="img_float" src="https://yc2367.github.io/files/Cornell.png"></span>
+<span style="display: inline-block; width: 60px;"><img class="img_float" src="https://yc2367.github.io/files/Cornell.png"></span>
 <span style="display: inline-block; width: 120px;"><img class="img_float" src="https://yc2367.github.io/files/NTU.png"></span>
 <h2 class="h2_title"> Education </h2>
 
@@ -67,6 +67,8 @@ redirect_from:
   </li>
 </ul>
 
+
+<br>
 
 
 <span style="display: inline-block; width: 120px;"><img class="img_float" src="https://yc2367.github.io/files/NUS.png"></span>
