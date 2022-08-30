@@ -12,7 +12,7 @@ redirect_from:
 <!-- Naming CSS Style -->
 <style>
 .li_1 {
-  margin-left:    -10px;
+  margin-left:    -15px;
   margin-top:     -6px;
 }
 .li_2 {
@@ -41,7 +41,7 @@ redirect_from:
 </style>
 
 
-<span style="display: block; margin-bottom: 2em;"></span>
+<span style="display: block; margin-bottom: 3em;"></span>
 
 
 <span style="display: inline-block; width: 60px;"><img class="img_float" src="https://yc2367.github.io/files/Cornell.png"></span>
