@@ -16,27 +16,34 @@ redirect_from:
   margin-top:      0px;
   margin-bottom:   0px;
 }
-.span_1 {
+.span_university { /* Span style for university name */
   display: inline-block;
-  width: 420px;
+  width: 430px;
 }
-.span_2 {
+.span_period { /* Span style for university attend period */
   display: inline-block;
-  width: 120px;
+  width: 150px;
+}
+.span_logo { /* Span style for university logos */
+  display: inline-block;
+  width: 55px;
 }
 .img_float {
-  float: left;
-  margin-left: 435px;
+  height:          50px; 
+  margin-bottom:  -50px;
+  float:           left;
+  margin-left:     125px;
 }
 </style>
 
-Education
-======
-<!-- Fine tune img height and margin-bottom for better looking -->
-<img class="img_float" style="height: 50px; margin-bottom: -50px;" src="https://yc2367.github.io/files/Cornell.png">
+
+<span class="span_logo"><img class="img_float" src="https://yc2367.github.io/files/Cornell.png"></span>
+<span class="span_logo"><img class="img_float" src="https://yc2367.github.io/files/NTU.png"></span>
+<h2 style="margin-bottom: -5px;"> Education </h2>
+
 <ul>
-  <li><span class="span_1"><strong>Cornell University</strong>, USA  </span> 
-    <br><span class="span_2"> 2022 - Present </span>
+  <li><span class="span_university"><strong>Cornell University</strong>, USA  </span> 
+    <br><span class="span_period"> 2022 - Present </span>
   <ul>
     <li class="li_1"> Ph.D. in Electrical and Computer Engineering </li>
   </ul>
@@ -46,11 +53,9 @@ Education
   </li>
 </ul>
 
-<!-- Fine tune img height and margin-bottom for better looking -->
-<img class="img_float" style="height: 45px; margin-bottom: -45px;" src="https://yc2367.github.io/files/NTU.png">
 <ul>
-  <li><span class="span_1"><strong>Nanyang Technological University</strong>, Singapore </span> 
-  <br><span class="span_2"> 2015 - 2019 </span>
+  <li><span class="span_university"><strong>Nanyang Technological University</strong>, Singapore </span> 
+  <br><span class="span_period"> 2015 - 2019 </span>
   <ul>
     <li class="li_1"> B.Eng. in Electrical & Electronic Engineering </li>
   </ul>
@@ -60,17 +65,37 @@ Education
   </li>
 </ul>
 
-Work Experience
-======
-* National University of Singapore, Sept. 2021 - Jul. 2022
-  * Research Engineer
-  * Supervisor: [Prof. Heng Chun-Huat](https://online.ece.nus.edu.sg/staff/web.asp?id=elehch)
-  * Research Topic: Switched-capacitor power amplifier
 
-* Nanyang Technological University, Singapore, Feb. 2020 - Aug. 2021
-  * Project Officer
-  * Research Topic: Computing in-memory circuit design
-  * Supervisor: [Prof. Tony Tae Hyoung Kim](https://sites.google.com/view/tonykim)
+<br>
+
+
+<span class="span_logo"><img class="img_float" src="https://yc2367.github.io/files/NUS.png"></span>
+<span class="span_logo"><img class="img_float" src="https://yc2367.github.io/files/NTU.png"></span>
+<h2 style="margin-bottom: -5px;"> Work Experience </h2>
+
+<ul>
+  <li><span class="span_university"><strong> National University of Singapore </strong>  </span> 
+    <br><span class="span_period"> Sept. 2021 - Jul. 2022 </span>
+  <ul>
+    <li class="li_1"> Research Engineer, advised by <a href="https://online.ece.nus.edu.sg/staff/web.asp?id=elehch"> Prof. Heng Chun-Huat </a></li>
+  </ul>
+  <ul>
+    <li class="li_1"> Research Topic: Switched-Capacitor Power Amplifier </li>
+  </ul>
+  </li>
+</ul>
+
+<ul>
+  <li><span class="span_university"><strong> Nanyang Technological University, Singapore </strong>  </span> 
+    <br><span class="span_period"> Feb. 2020 - Aug. 2021 </span>
+  <ul>
+    <li class="li_1"> Project Officer, advised by <a href="https://sites.google.com/view/tonykim"> Prof. Tony Tae Hyoung Kim </a></li>
+  </ul>
+  <ul>
+    <li class="li_1"> Research Topic: Computing In-Memory </li>
+  </ul>
+  </li>
+</ul>
 
 <!--
 Publications
