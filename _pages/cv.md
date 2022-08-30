@@ -1,7 +1,7 @@
 ---
 layout: archive
 title: ""
-permalink: /cv/
+permalink: /Experience/
 author_profile: true
 redirect_from:
   - /resume
@@ -11,6 +11,10 @@ redirect_from:
 
 <!-- Naming CSS Style -->
 <style>
+.h2_title {
+  margin-top:     0px;
+  margin-bottom:  0px;
+}
 .li_1 {
   margin-left:    -15px;
   margin-top:     -6px;
@@ -19,10 +23,6 @@ redirect_from:
   margin-left:    -20px;
   margin-top:      -6px;
   margin-bottom:   -6px;
-}
-.h2_title {
-  margin-top:     0px;
-  margin-bottom:  0px;
 }
 .span_university { /* Span style for university name */
   display: inline-block;
