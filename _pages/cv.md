@@ -10,10 +10,6 @@ redirect_from:
 {% include base_path %}
 
 <style>
-ul li {
-  margin-below: 3px;
-  margin-top: 3px;
-}
 ul li span {
   display: inline-block;
   width: 450px;
