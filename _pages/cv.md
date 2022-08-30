@@ -11,13 +11,18 @@ redirect_from:
 
 Education
 ======
-* Ph.D. in Electrical and Computer Engineering, Cornell University, 2022 - Present
-* B.Eng. in Electrical & Electronic Engineering, Nanyang Technological University, Singapore, 2015 - 2019
+|                                                   |                         |
+|----------------------------------                 |-------------------------|
+|Cornell University, USA                            |   2022 - Present        |
+|Ph.D. in Electrical and Computer Engineering       |                         |
+|                                                   |                         |
+|Nanyang Technological University, Singapore        |   2015 - 2019           |
+|B.Eng. in Electrical & Electronic Engineering      |                         |
 
 Work Experience
 ======
 |                                                 |                           |
-|-------------------------------------------------|------------------------   |
+|-------------------------------------------------|---------------------------|
 | National University of Singapore                | Sept. 2021 - Jul. 2022    |
   * Research Engineer
   * Supervisor: [Prof. Heng Chun-Huat](https://online.ece.nus.edu.sg/staff/web.asp?id=elehch)
