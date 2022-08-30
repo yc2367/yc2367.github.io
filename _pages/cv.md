@@ -17,8 +17,8 @@ redirect_from:
   margin-bottom:   -5px;
 }
 .h2_title {
-  margin-top:     45px;
-  margin-bottom:  -5px;
+  margin-top:     10px;
+  margin-bottom:  0px;
 }
 .span_university { /* Span style for university name */
   display: inline-block;
@@ -30,8 +30,8 @@ redirect_from:
 }
 .img_float {
   height:          50px; 
-  margin-top:      10px;
-  margin-bottom:   0px;
+  margin-top:      0px;
+  margin-bottom:  -5px;
   float:           left;
 }
 </style>
