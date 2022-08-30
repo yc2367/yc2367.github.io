@@ -26,11 +26,11 @@ redirect_from:
 }
 .span_period { /* Span style for university attend period */
   display: inline-block;
-  width: 150px;
+  width: 200px;
 }
 .img_float {
   height:          50px; 
-  margin-bottom:  -50px;
+  margin-bottom:   0px;
   float:           left;
 }
 </style>
