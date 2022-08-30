@@ -22,9 +22,8 @@ img {
 Education
 ======
 <ul>
-  <li><img style="height:50px; margin-left:520px; margin-bottom:-45px" src="https://yc2367.github.io/files/Cornell.png">
-  <li>
-  <span><strong>Cornell University</strong>, USA </span> 2022 - Present 
+  <img style="height:50px; margin-left:520px; margin-bottom:-45px" src="https://yc2367.github.io/files/Cornell.png">
+  <li><span><strong>Cornell University</strong>, USA </span> 2022 - Present 
   <!-- Fine tune img height and margin-right for better looking -->
     <ul>
       <li style="margin-left: -15px;"> Ph.D. in Electrical and Computer Engineering </li>
