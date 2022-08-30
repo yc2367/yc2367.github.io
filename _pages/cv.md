@@ -29,7 +29,7 @@ Education
 ======
 <ul>
   <!-- Fine tune img height and margin-bottom for better looking -->
-  <img class="image_float" style="height: 50px; margin-bottom: -45px;" src="https://yc2367.github.io/files/Cornell.png">
+  <img class="img_float" style="height: 50px; margin-bottom: -45px;" src="https://yc2367.github.io/files/Cornell.png">
   <li><span class="span_1"><strong>Cornell University</strong>, USA </span> <span class="span_2"> 2022 - Present </span>
     <ul>
       <li style="margin-left: -15px;"> Ph.D. in Electrical and Computer Engineering </li>
@@ -42,7 +42,7 @@ Education
 
 <ul>
   <!-- Fine tune img height and margin-bottom for better looking -->
-  <img class="image_float" style="height: 50px; margin-bottom: -45px;" src="https://yc2367.github.io/files/NTU.png">
+  <img class="img_float" style="height: 50px; margin-bottom: -45px;" src="https://yc2367.github.io/files/NTU.png">
   <li><span class="span_1"><strong>Nanyang Technological University</strong>, Singapore </span> <span class="span_2"> 2015 - 2019 </span>
     <ul>
       <li style="margin-left: -15px;"> B.Eng. in Electrical & Electronic Engineering </li>
