@@ -17,8 +17,8 @@ redirect_from:
 }
 .li_2 {
   margin-left:    -20px;
-  margin-top:      -5px;
-  margin-bottom:   -5px;
+  margin-top:      -6px;
+  margin-bottom:   -6px;
 }
 .h2_title {
   margin-top:     0px;
@@ -41,7 +41,7 @@ redirect_from:
 </style>
 
 
-<span style="display: block; margin-bottom: 3em;"></span>
+<span style="display: block; margin-bottom: 1em;"></span>
 
 
 <span style="display: inline-block; width: 60px;"><img class="img_float" src="https://yc2367.github.io/files/Cornell.png"></span>
@@ -75,8 +75,8 @@ redirect_from:
 </ul>
 
 
-<!-- Line Breal -->
-<span style="display: block; margin-bottom: 2em;"></span>
+<!-- Line Break -->
+<span style="display: block; margin-bottom: 3em;"></span>
 
 
 <span style="display: inline-block; width: 120px;"><img class="img_float" src="https://yc2367.github.io/files/NUS.png"></span>
