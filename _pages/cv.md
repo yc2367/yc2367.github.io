@@ -9,15 +9,47 @@ redirect_from:
 
 {% include base_path %}
 
+<style>
+ul li {
+  margin-below: 3px;
+  margin-top: 3px;
+}
+ul li span {
+  display: inline-block;
+  width: 450px;
+}
+img {
+  float: right;
+}
+</style>
+
 Education
 ======
-* Cornell University, USA 
-<p style='margin-left: 20px;'> 2022 - Present </p>     
-  * Ph.D. in Electrical and Computer Engineering
-  * Advisor: Prof. Mohamed Abdelfattah
+<ul>
+  <li><span><strong>Cornell University</strong>, USA </span> 2022 - Present 
+  <!-- Fine tune img height and margin-right for better looking -->
+  <img height="50px;" style="margin-right:160px;" src="https://yc2367.github.io/files/Cornell.png"></img>
+    <ul>
+      <li style="margin-left: -15px;"> Ph.D. in Electrical and Computer Engineering </li>
+    </ul>
+    <ul>
+      <li style="margin-left: -15px;"> Advisor: Prof. Mohamed Abdelfattah </li>
+    </ul>
+  </li>
+</ul>
 
-* Nanyang Technological University, Singapore <p style='margin-right: 20px;'> 2015 - 2019 </p> 
-  * B.Eng. in Electrical & Electronic Engineering
+<ul>
+  <li><span><strong>Nanyang Technological University</strong>, Singapore </span> 2015 - 2019 
+  <!-- Fine tune img height and margin-right for better looking -->
+  <img height="40px;" style="margin-right:100px;" src="https://yc2367.github.io/files/NTU.png"></img>
+    <ul>
+      <li style="margin-left: -15px;"> B.Eng. in Electrical & Electronic Engineering </li>
+    </ul>
+    <ul>
+      <li style="margin-left: -15px;"> GPA: 4.74 / 5.00, Honours (Highest Distinction) </li>
+    </ul>
+  </li>
+</ul>
 
 Work Experience
 ======
