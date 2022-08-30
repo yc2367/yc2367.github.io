@@ -14,16 +14,13 @@ ul li span {
   display: inline-block;
   width: 450px;
 }
-img {
-  float: left;
-}
 </style>
 
 Education
 ======
 <ul>
   <!-- Fine tune img height, margin-left and margin-bottom for better looking -->
-  <img style="height:50px; margin-left: 70%; margin-bottom:-45px" src="https://yc2367.github.io/files/Cornell.png">
+  <img style="float: left; height: 50px; margin-left: 65%; margin-bottom: -45px" src="https://yc2367.github.io/files/Cornell.png">
   <li><span><strong>Cornell University</strong>, USA </span> 2022 - Present 
     <ul>
       <li style="margin-left: -15px;"> Ph.D. in Electrical and Computer Engineering </li>
@@ -36,7 +33,7 @@ Education
 
 <ul>
   <!-- Fine tune img height, margin-left and margin-bottom for better looking -->
-  <img style="height: 50px; margin-left: 70%; margin-bottom:-45px;" src="https://yc2367.github.io/files/NTU.png">
+  <img style="float: left; height: 50px; margin-left: 65%; margin-bottom: -45px;" src="https://yc2367.github.io/files/NTU.png">
   <li><span><strong>Nanyang Technological University</strong>, Singapore </span> 2015 - 2019 
     <ul>
       <li style="margin-left: -15px;"> B.Eng. in Electrical & Electronic Engineering </li>
