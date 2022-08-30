@@ -13,12 +13,12 @@ redirect_from:
 <style>
 .li_1{
   margin-left:    -20px;
-  margin-top:      3px;
-  margin-bottom:   3px;
+  margin-top:      0px;
+  margin-bottom:   0px;
 }
 .span_1 {
   display: inline-block;
-  width: 380px;
+  width: 420px;
 }
 .span_2 {
   display: inline-block;
@@ -26,7 +26,7 @@ redirect_from:
 }
 .img_float {
   float: left;
-  margin-left: 400px;
+  margin-left: 435px;
 }
 </style>
 
