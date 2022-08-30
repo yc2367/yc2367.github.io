@@ -16,7 +16,9 @@ Education
 
 Work Experience
 ======
-* National University of Singapore                  Sept. 2021 - Jul. 2022
+|                                                 |                           |
+|-------------------------------------------------|------------------------   |
+| National University of Singapore                | Sept. 2021 - Jul. 2022    |
   * Research Engineer
   * Supervisor: [Prof. Heng Chun-Huat](https://online.ece.nus.edu.sg/staff/web.asp?id=elehch)
   * Research Topic: Switched-capacitor power amplifier
