@@ -13,10 +13,11 @@ redirect_from:
 <style>
 .li_1{
   margin-left:    -20px;
-  margin-top:      -3px;
-  margin-bottom:   -3px;
+  margin-top:      -5px;
+  margin-bottom:   -5px;
 }
 .h2_title {
+  margin-top:     -45px;
   margin-bottom:  -5px;
 }
 .span_university { /* Span style for university name */
@@ -29,7 +30,8 @@ redirect_from:
 }
 .img_float {
   height:          50px; 
-  margin-bottom:   -45px;
+  margin-top:      10px;
+  margin-bottom:   0px;
   float:           left;
 }
 </style>
@@ -69,7 +71,7 @@ redirect_from:
 
 <span style="display: inline-block; width: 120px;"><img class="img_float" src="https://yc2367.github.io/files/NUS.png"></span>
 <span style="display: inline-block; width: 120px;"><img class="img_float" src="https://yc2367.github.io/files/NTU.png"></span>
-<h2 class="h2_title"> Work Experience </h2>
+<h2 class="h2_title"> Research Experience </h2>
 
 <ul>
   <li>
@@ -79,7 +81,7 @@ redirect_from:
     <li class="li_1"> Research Engineer</li>
   </ul>
   <ul>
-    <li class="li_1"> Research Topic: Switched-Capacitor Power Amplifier </li>
+    <li class="li_1"> Topic: Switched-Capacitor Power Amplifier </li>
   </ul>
   <ul>
     <li class="li_1"> Advisor: Prof. Heng Chun-Huat </li>
