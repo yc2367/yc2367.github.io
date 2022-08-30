@@ -18,32 +18,26 @@ redirect_from:
 }
 .span_university { /* Span style for university name */
   display: inline-block;
-  width: 430px;
+  width: 450px;
 }
 .span_period { /* Span style for university attend period */
   display: inline-block;
   width: 150px;
 }
-.span_logo { /* Span style for university logos */
-  display: inline-block;
-  width: 55px;
-}
 .img_float {
   height:          50px; 
   margin-bottom:  -50px;
   float:           left;
-  margin-left:     125px;
 }
 </style>
 
 
-<span class="span_logo"><img class="img_float" src="https://yc2367.github.io/files/Cornell.png"></span>
-<span class="span_logo"><img class="img_float" src="https://yc2367.github.io/files/NTU.png"></span>
+<span style="display: inline-block; width: 55px;"><img class="img_float" src="https://yc2367.github.io/files/Cornell.png"></span>
+<span style="display: inline-block; width: 120px;"><img class="img_float" src="https://yc2367.github.io/files/NTU.png"></span>
 <h2 style="margin-bottom: -5px;"> Education </h2>
 
 <ul>
-  <li><span class="span_university"><strong>Cornell University</strong>, USA  </span> 
-    <br><span class="span_period"> 2022 - Present </span>
+  <li><span class="span_university"><strong>Cornell University</strong>, USA <span class="span_period"> 2022 - Present </span></span> 
   <ul>
     <li class="li_1"> Ph.D. in Electrical and Computer Engineering </li>
   </ul>
@@ -54,8 +48,8 @@ redirect_from:
 </ul>
 
 <ul>
-  <li><span class="span_university"><strong>Nanyang Technological University</strong>, Singapore </span> 
-  <br><span class="span_period"> 2015 - 2019 </span>
+  <li><span class="span_university"><strong>Nanyang Technological University</strong>, Singapore <span class="span_period"> 2015 - 2019 </span> </span> 
+
   <ul>
     <li class="li_1"> B.Eng. in Electrical & Electronic Engineering </li>
   </ul>
@@ -69,13 +63,12 @@ redirect_from:
 <br>
 
 
-<span class="span_logo"><img class="img_float" src="https://yc2367.github.io/files/NUS.png"></span>
-<span class="span_logo"><img class="img_float" src="https://yc2367.github.io/files/NTU.png"></span>
+<span style="display: inline-block; width: 120px;"><img class="img_float" src="https://yc2367.github.io/files/NUS.png"></span>
+<span style="display: inline-block; width: 120px;"><img class="img_float" src="https://yc2367.github.io/files/NTU.png"></span>
 <h2 style="margin-bottom: -5px;"> Work Experience </h2>
 
 <ul>
-  <li><span class="span_university"><strong> National University of Singapore </strong>  </span> 
-    <br><span class="span_period"> Sept. 2021 - Jul. 2022 </span>
+  <li><span class="span_university"><strong> National University of Singapore </strong>, Singapore <span class="span_period"> Sept. 2021 - Jul. 2022 </span></span> 
   <ul>
     <li class="li_1"> Research Engineer, advised by <a href="https://online.ece.nus.edu.sg/staff/web.asp?id=elehch"> Prof. Heng Chun-Huat </a></li>
   </ul>
@@ -86,8 +79,7 @@ redirect_from:
 </ul>
 
 <ul>
-  <li><span class="span_university"><strong> Nanyang Technological University, Singapore </strong>  </span> 
-    <br><span class="span_period"> Feb. 2020 - Aug. 2021 </span>
+  <li><span class="span_university"><strong> Nanyang Technological University </strong>, Singapore <span class="span_period"> Feb. 2020 - Aug. 2021 </span></span> 
   <ul>
     <li class="li_1"> Project Officer, advised by <a href="https://sites.google.com/view/tonykim"> Prof. Tony Tae Hyoung Kim </a></li>
   </ul>
