@@ -11,7 +11,8 @@ redirect_from:
 
 Education
 ======
-* Cornell University, USA <p style='margin-right: 20px;'> 2022 - Present </p>     
+* Cornell University, USA 
+<p style='margin-left: 20px;'> 2022 - Present </p>     
   * Ph.D. in Electrical and Computer Engineering
   * Advisor: Prof. Mohamed Abdelfattah
 
