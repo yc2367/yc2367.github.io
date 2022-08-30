@@ -34,7 +34,7 @@ redirect_from:
 }
 .img_float {
   height:          50px; 
-  margin-top:     -10px;
+  margin-top:      0px;
   margin-bottom:  -25px;
   float:           left;
 }
@@ -76,7 +76,7 @@ redirect_from:
 
 
 <!-- Line Breal -->
-<span style="display: block; margin-bottom: 3em;"></span>
+<span style="display: block; margin-bottom: 2em;"></span>
 
 
 <span style="display: inline-block; width: 120px;"><img class="img_float" src="https://yc2367.github.io/files/NUS.png"></span>
