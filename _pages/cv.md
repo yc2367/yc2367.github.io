@@ -17,7 +17,7 @@ redirect_from:
   margin-bottom:   -5px;
 }
 .h2_title {
-  margin-top:     -45px;
+  margin-top:     45px;
   margin-bottom:  -5px;
 }
 .span_university { /* Span style for university name */
