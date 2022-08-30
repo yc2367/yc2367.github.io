@@ -76,10 +76,13 @@ redirect_from:
     <span class="span_university"><strong> National University of Singapore </strong>, Singapore </span>
     <span class="span_period"> Sept. 2021 - Jul. 2022 </span> 
   <ul>
-    <li class="li_1"> Research Engineer, advised by <a href="https://online.ece.nus.edu.sg/staff/web.asp?id=elehch"> Prof. Heng Chun-Huat </a></li>
+    <li class="li_1"> Research Engineer</li>
   </ul>
   <ul>
     <li class="li_1"> Research Topic: Switched-Capacitor Power Amplifier </li>
+  </ul>
+  <ul>
+    <li class="li_1"> Advisor: Prof. Heng Chun-Huat </li>
   </ul>
   </li>
 </ul>
@@ -89,7 +92,10 @@ redirect_from:
     <span class="span_university"><strong> Nanyang Technological University </strong>, Singapore </span>
     <span class="span_period"> Feb. 2020 - Aug. 2021 </span>
   <ul>
-    <li class="li_1"> Project Officer, advised by <a href="https://sites.google.com/view/tonykim"> Prof. Tony Tae Hyoung Kim </a></li>
+    <li class="li_1"> Project Officer </li>
+  </ul>
+  <ul>
+    <li class="li_1"> Advisor: Prof. Tony Tae Hyoung Kim </li>
   </ul>
   <ul>
     <li class="li_1"> Research Topic: Computing In-Memory </li>
