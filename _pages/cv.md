@@ -24,7 +24,7 @@ Education
 <ul>
   <li><span><strong>Cornell University</strong>, USA </span> 2022 - Present 
   <!-- Fine tune img height and margin-right for better looking -->
-  <img height="50px;" style="margin-right:160px;" src="https://yc2367.github.io/files/Cornell.png"></img>
+  <img style="height: 50px; margin-right:160px;" src="https://yc2367.github.io/files/Cornell.png"></img>
     <ul>
       <li style="margin-left: -15px;"> Ph.D. in Electrical and Computer Engineering </li>
     </ul>
@@ -37,7 +37,7 @@ Education
 <ul>
   <li><span><strong>Nanyang Technological University</strong>, Singapore </span> 2015 - 2019 
   <!-- Fine tune img height and margin-right for better looking -->
-  <img height="40px;" style="margin-right:100px;" src="https://yc2367.github.io/files/NTU.png"></img>
+  <img style="height: 40px; margin-right: 100px;" src="https://yc2367.github.io/files/NTU.png"></img>
     <ul>
       <li style="margin-left: -15px;"> B.Eng. in Electrical & Electronic Engineering </li>
     </ul>
