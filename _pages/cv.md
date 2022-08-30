@@ -99,10 +99,10 @@ redirect_from:
     <li class="li_1"> Project Officer </li>
   </ul>
   <ul>
-    <li class="li_1"> Advisor: Prof. Tony Tae Hyoung Kim </li>
+    <li class="li_1"> Research Topic: Computing In-Memory </li>
   </ul>
   <ul>
-    <li class="li_1"> Research Topic: Computing In-Memory </li>
+    <li class="li_1"> Advisor: Prof. Tony Tae Hyoung Kim </li>
   </ul>
   </li>
 </ul>
