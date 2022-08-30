@@ -12,7 +12,7 @@ redirect_from:
 Education
 ======
 |                                                   |                         |
-|----------------------------------                 |-------------------------|
+|---------------------------------------------------|-------------------------|
 |Cornell University, USA                            |   2022 - Present        |
 |Ph.D. in Electrical and Computer Engineering       |                         |
 |                                                   |                         |
