@@ -9,19 +9,28 @@ redirect_from:
 
 {% include base_path %}
 
+<!-- Naming CSS Style -->
 <style>
-ul li span {
+.span_1 {
   display: inline-block;
-  width: 55%;
+  width: 420px;
+}
+.span_2 {
+  display: inline-block;
+  width: 100px;
+}
+.img_float {
+  float: left;
+  margin-left: 530px;
 }
 </style>
 
 Education
 ======
 <ul>
-  <!-- Fine tune img height, margin-left and margin-bottom for better looking -->
-  <img style="float: left; height: 50px; margin-left: 65%; margin-bottom: -45px" src="https://yc2367.github.io/files/Cornell.png">
-  <li><span><strong>Cornell University</strong>, USA </span> 2022 - Present 
+  <!-- Fine tune img height and margin-bottom for better looking -->
+  <img class="image_float" style="height: 50px; margin-bottom: -45px;" src="https://yc2367.github.io/files/Cornell.png">
+  <li><span class="span_1"><strong>Cornell University</strong>, USA </span> <span class="span_2"> 2022 - Present </span>
     <ul>
       <li style="margin-left: -15px;"> Ph.D. in Electrical and Computer Engineering </li>
     </ul>
@@ -32,9 +41,9 @@ Education
 </ul>
 
 <ul>
-  <!-- Fine tune img height, margin-left and margin-bottom for better looking -->
-  <img style="float: left; height: 50px; margin-left: 65%; margin-bottom: -45px;" src="https://yc2367.github.io/files/NTU.png">
-  <li><span><strong>Nanyang Technological University</strong>, Singapore </span> 2015 - 2019 
+  <!-- Fine tune img height and margin-bottom for better looking -->
+  <img class="image_float" style="height: 50px; margin-bottom: -45px;" src="https://yc2367.github.io/files/NTU.png">
+  <li><span class="span_1"><strong>Nanyang Technological University</strong>, Singapore </span> <span class="span_2"> 2015 - 2019 </span>
     <ul>
       <li style="margin-left: -15px;"> B.Eng. in Electrical & Electronic Engineering </li>
     </ul>
