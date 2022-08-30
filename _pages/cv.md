@@ -81,7 +81,7 @@ redirect_from:
     <li class="li_1"> Research Engineer</li>
   </ul>
   <ul>
-    <li class="li_1"> Topic: Switched-Capacitor Power Amplifier </li>
+    <li class="li_1"> Research Topic: Switched-Capacitor Power Amplifier </li>
   </ul>
   <ul>
     <li class="li_1"> Advisor: Prof. Heng Chun-Huat </li>
