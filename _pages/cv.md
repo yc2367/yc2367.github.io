@@ -67,8 +67,6 @@ redirect_from:
 </ul>
 
 
-<br>
-
 
 <span style="display: inline-block; width: 120px;"><img class="img_float" src="https://yc2367.github.io/files/NUS.png"></span>
 <span style="display: inline-block; width: 120px;"><img class="img_float" src="https://yc2367.github.io/files/NTU.png"></span>
