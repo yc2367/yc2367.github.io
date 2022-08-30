@@ -13,15 +13,15 @@ redirect_from:
 <style>
 .span_1 {
   display: inline-block;
-  width: 420px;
+  width: 430px;
 }
 .span_2 {
   display: inline-block;
-  width: 100px;
+  width: 120px;
 }
 .img_float {
   float: left;
-  margin-left: 530px;
+  margin-left: 560px;
 }
 </style>
 
