@@ -16,7 +16,7 @@ ul li span {
 }
 img {
   float: left;
-  margin-left:  600px;
+  margin-left: 70%;
 }
 </style>
 
