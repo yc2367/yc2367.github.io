@@ -12,11 +12,13 @@ redirect_from:
 <!-- Naming CSS Style -->
 <style>
 .li_1{
-  margin-left: -20px;
+  margin-left:    -20px;
+  margin-top:      3px;
+  margin-bottom:   3px;
 }
 .span_1 {
   display: inline-block;
-  width: 350px;
+  width: 380px;
 }
 .span_2 {
   display: inline-block;
@@ -24,7 +26,7 @@ redirect_from:
 }
 .img_float {
   float: left;
-  margin-left: 370px;
+  margin-left: 400px;
 }
 </style>
 
