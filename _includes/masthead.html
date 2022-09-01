@@ -1,15 +1,5 @@
 {% include base_path %}
 
-<style>
-.divfix {
-       top: 0;
-       position: sticky;
-       width:  100%;
-       z-index: 9999;
-}
-</style>
-
-<div class="divfix">
 <div class="masthead">
   <div class="masthead__inner-wrap">
     <div class="masthead__menu">
@@ -26,9 +16,8 @@
             <li class="masthead__menu-item"><a href="{{ domain }}{{ link.url }}">{{ link.title }}</a></li>
           {% endfor %}
         </ul>
-        <!-- <ul class="hidden-links hidden"></ul> -->
+        <ul class="hidden-links hidden"></ul>
       </nav>
     </div>
   </div>
-</div>
 </div>
