@@ -41,7 +41,7 @@ redirect_from:
 </style>
 
 
-<span style="display: block; margin-bottom: 40px;"></span>
+<span style="display: block; margin-bottom: 45px;"></span>
 
 
 <span style="display: inline-block; width: 60px;"><img class="img_float" src="https://yc2367.github.io/files/Cornell.png"></span>
