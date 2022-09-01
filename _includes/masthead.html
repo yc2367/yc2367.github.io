@@ -5,6 +5,7 @@
        top: 0;
        left: 0;
        position: fixed;
+       width:  100%;
        z-index: 1000;
 }
 </style>
@@ -14,7 +15,7 @@
   <div class="masthead__inner-wrap">
     <div class="masthead__menu">
       <nav id="site-nav" class="greedy-nav">
-        <button><div class="navicon"></div></button>
+        <button><div class="navicon" style="float: right;"></div></button>
         <ul class="visible-links">
           <li class="masthead__menu-item masthead__menu-item--lg"><a href="{{ base_path }}/">{{ site.title }}</a></li>
           {% for link in site.data.navigation.main %}
