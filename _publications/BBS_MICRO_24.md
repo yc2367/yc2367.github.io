@@ -1,5 +1,5 @@
 ---
-title: "BBS: BBS: Bi-directional Bit-level Sparsity for Deep Learning Acceleration"
+title: "BBS: Bi-directional Bit-level Sparsity for Deep Learning Acceleration"
 collection: publications
 permalink: 
 excerpt: 'by ***Yuzong Chen***, Jian Meng, Jae-sun Seo, and Mohamed Abdelfattah'
