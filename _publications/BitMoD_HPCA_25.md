@@ -1,5 +1,5 @@
 ---
-title: "BBS: Bi-directional Bit-level Sparsity for Deep Learning Acceleration"
+title: "BitMoD: Bit-serial Mixture-of-Datatype LLM Acceleration"
 collection: publications
 permalink: 
 excerpt: 'by ***Yuzong Chen***, YuzongChen, Ahmed AbouElhamayed, Xilai Dai, Yang Wang, Marta Andronic, George A. Constantinides, and Mohamed S. Abdelfattah'
