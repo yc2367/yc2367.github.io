@@ -24,15 +24,17 @@ hr {
 }
 
 table {
-  td,
-  th {
-    font-size: 1rem;
-    padding: 1px 1rem 1px 0;
-  }
-
+  // Modified by Yuzong Chen (yc2367@cornell.edu)
   th {
     font-weight: bold;
+    width: 15%;
   }
+
+  th, td {
+    line-height: 1.15;
+    font-size: 1.05rem;
+    padding: 0;
+  }  
 }
 
 a,
@@ -215,9 +217,9 @@ ul.task-list input[type="checkbox"] {
   margin-right: 1rem;
 }
 
-@media (min-width: 576px) {
+@media (min-width: 250px) {
   .profile {
-    width: 30%;
+    width: 18%;
 
     .address {
       p {
@@ -229,7 +231,7 @@ ul.task-list input[type="checkbox"] {
 
 .post-description {
   margin-bottom: 2rem;
-  font-size: 0.875rem;
+  font-size: 1rem;
 
   a {
     color: inherit;
@@ -248,6 +250,7 @@ ul.task-list input[type="checkbox"] {
   border-bottom: 1px solid var(--global-divider-color);
   background-color: var(--global-bg-color);
   opacity: 0.95;
+  font-size: 1.2rem;
 }
 
 .navbar .dropdown-menu {
@@ -679,8 +682,9 @@ footer.sticky-bottom {
   h2.bibliography {
     color: var(--global-divider-color);
     border-top: 1px solid var(--global-divider-color);
-    padding-top: 1rem;
-    margin-top: 2rem;
+    padding-top: 0.75rem;
+    margin-top: 1rem;
+    margin-bottom: -1.5rem;
     text-align: right;
   }
 
@@ -690,18 +694,26 @@ footer.sticky-bottom {
     margin-top: 0;
 
     li {
-      margin-bottom: 1rem;
+      // Modified by Yuzong Chen (yc2367@cornell.edu)
+      margin-bottom: 1.75rem;
 
       .preview {
       }
 
       .abbr {
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.4rem;
 
+        // Modified by Yuzong Chen (yc2367@cornell.edu)
         abbr {
           display: inline-block;
+          font-size: 0.875rem;
+          width: 85px;
+          margin-left: 16px;
+          margin-right: 50px;
+          margin-top: 4px;
+          padding-top: 2px;
+          padding-bottom: 2px;
           background-color: var(--global-theme-color);
-          margin-bottom: 0.5rem;
 
           a {
             color: white;
@@ -720,9 +732,13 @@ footer.sticky-bottom {
 
       .title {
         font-weight: bolder;
+        font-size: 1.06rem;
+        margin-bottom: 0.1rem;
       }
 
       .author {
+        margin-bottom: 0.3rem;
+
         a {
           border-bottom: 1px dashed var(--global-theme-color);
 
@@ -750,13 +766,16 @@ footer.sticky-bottom {
       }
 
       .links {
+        margin-top: 0.15rem;
+        font-size: 0.85rem;        
+
         a.btn {
           color: var(--global-text-color);
           border: 1px solid var(--global-text-color);
-          padding-left: 1rem;
-          padding-right: 1rem;
-          padding-top: 0.25rem;
-          padding-bottom: 0.25rem;
+          padding-left: 0.9rem;
+          padding-right: 0.9rem;
+          padding-top: 0.2rem;
+          padding-bottom: 0.2rem;
           margin-left: 0;
 
           &:hover {

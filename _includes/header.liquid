@@ -108,6 +108,12 @@
               {% endif %}
             {% endif %}
           {% endfor %}
+
+          <!-- CV page, added by Yuzong Chen (yc2367@cornell.edu) -->
+          <li class="nav-item">
+            <a class="nav-link" href="/assets/pdf/CV_YuzongChen.pdf" target="_blank">CV</a>
+          </li>
+
           {% if site.search_enabled %}
             <!-- Search -->
             <li class="nav-item">
@@ -116,11 +122,11 @@
               </button>
             </li>
           {% endif %}
+
           {% if site.enable_darkmode %}
             <!-- Toogle theme mode -->
             <li class="toggle-container">
               <button id="light-toggle" title="Change theme">
-                <i class="ti ti-sun-moon" id="light-toggle-system"></i>
                 <i class="ti ti-moon-filled" id="light-toggle-dark"></i>
                 <i class="ti ti-sun-filled" id="light-toggle-light"></i>
               </button>

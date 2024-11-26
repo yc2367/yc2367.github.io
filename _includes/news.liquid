@@ -15,8 +15,10 @@
           {% assign news_limit = news_size %}
         {% endif %}
         {% for item in news limit: news_limit %}
+          <!-- div added by Yuzong Chen (yc2367@cornell.edu) -->
+          <div>
           <tr>
-            <th scope="row" style="width: 20%">{{ item.date | date: '%b %d, %Y' }}</th>
+            <th scope="row">{{ item.date | date: '%b, %Y' }}</th>
             <td>
               {% if item.inline %}
                 {{ item.content | remove: '<p>' | remove: '</p>' | emojify }}
@@ -25,6 +27,7 @@
               {% endif %}
             </td>
           </tr>
+          </div>
         {% endfor %}
       </table>
     </div>
