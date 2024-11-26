@@ -1,0 +1,4 @@
+User-agent: *
+Disallow:
+
+Sitemap: https://yc2367.github.io/sitemap.xml
