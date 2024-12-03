@@ -2,7 +2,7 @@
 layout: page
 permalink: /publications/
 title: Publications
-description: † indicates equal contribution. <br/>See my <a href="https://scholar.google.com/citations?user=FM5j_BYAAAAJ">Google Scholar]</a> for more information.
+description: See my <a href="https://scholar.google.com/citations?user=FM5j_BYAAAAJ">Google Scholar</a> for more information. <br/>† indicates equal contribution.
 nav: true
 nav_order: 2
 ---
