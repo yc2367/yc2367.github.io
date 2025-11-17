@@ -17,3 +17,11 @@
 "constantinides":
   - firstname: ["George A.", "George"]
     url: https://cas.ee.ic.ac.uk/people/gac1/
+
+"tambe":
+  - firstname: ["Thierry", "T."]
+    url: https://thierrytambe.com/
+
+"marian":
+  - firstname: ["Verhelst", "V."]
+    url: https://micas.esat.kuleuven.be/team/marian-verhelst
