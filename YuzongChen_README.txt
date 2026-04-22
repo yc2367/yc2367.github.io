@@ -1,3 +1,5 @@
+Add new page: yc2367.github.io/_pages/
+
 Add new publication: yc2367.github.io/_bibliography/
 
 Modify date format for News: yc2367.github.io/_includes/news.liquid
