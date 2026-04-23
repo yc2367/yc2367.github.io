@@ -155,6 +155,7 @@ d-appendix {
 @media (max-width: 1024px) {
   d-article {
     d-contents {
+      position: static !important;
       display: block;
       grid-column-start: 2;
       grid-column-end: -2;
