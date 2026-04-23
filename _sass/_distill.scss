@@ -161,13 +161,13 @@ d-appendix {
     d-contents {
       position: static !important;
       display: block;
-      grid-column-start: 2;
+      grid-column-start: 3;
       grid-column-end: -2;
       margin-bottom: 2em;
       margin-left: 2em;
       padding-top: 0;
       padding-bottom: 0.5em;
-      padding-left: 2em;
+      padding-left: 8em;
       width: 100%;
       border: 1px solid var(--global-hover-color);
       a {
