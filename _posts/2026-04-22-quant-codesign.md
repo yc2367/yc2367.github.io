@@ -58,7 +58,7 @@ _styles: >
   }
 ---
 
-In this post, I will discuss quantization, an essential technique for efficient LLM deployment on hardware. My goal is to give a tutorial about LLM quantization from an algorithm/hardware co-design perspective. I will start from binary number representations, quantization basics, to advanced quantization techniques, as well as their hardware implications<d-footnote>This blog is not meant to be a survey paper on LLM quantization. For a more comprehensive list of LLM quantization papers, you may want to check out <a href="https://github.com/Kai-Liu001/Awesome-Model-Quantization">this page</a>.</d-footnote>.
+In this post, I will discuss quantization, an essential technique for efficient LLM deployment on hardware. My goal is to give an overview of LLM quantization from an algorithm/hardware co-design perspective. I will start from binary number representations, quantization basics, to advanced quantization techniques, as well as their hardware implications<d-footnote>This blog is not meant to be a survey paper on LLM quantization. For a more comprehensive list of LLM quantization papers, you may want to check out <a href="https://github.com/Kai-Liu001/Awesome-Model-Quantization">this page</a>.</d-footnote>.
 
 
 
