@@ -209,7 +209,7 @@ Before diving into technical details, I would like to classify existing quantiza
 
 Compute-based quantization enables computation on low-bit MAC hardware, whereas memory-based quantization requires an additional memory access to the codebook cache before performing computation on BF16 MAC hardware. Hence, at the same model compression ratio, compute-based quantization typically consumes significantly less area and energy, making it the favorable approach in modern LLMs<d-footnote>Examples include DeepSeek-V3, DeepSeek-R1, Qwen3.5, GPT-OSS, etc.</d-footnote> and AI chips<d-footnote>Examples include NVIDIA GPU, Meta MTIA, Tesla AI4, Microsoft MAIA, etc.</d-footnote>. **In the remaining of this blog, I will focus on discussing compute-based quantization.** 
 
-## <sub>III-2. Mathematical Background of Quantization</sub>
+## <sub>III-2. Mathematical Background</sub>
 Given a tensor represented in high-precision floating-point format (e.g., BF16), the purpose of quantization is to convert this tensor to a low-precision number format (e.g., INT8 / FP8), where every tensor element is mapped to its closest quantization value. However, directly mapping a value to another representation can introduce many issues, such as **overflow** and **underflow**, which are illustrated below: 
 
 <div style="text-align:center;">
@@ -248,7 +248,7 @@ $$
 
 For example, at 4-bit quantization, you might have seen some papers using a format called E1M2, which has the set of quantization values $$\pm\{\,0,\, 0.25,\, 0.5,\, 0.75,\, 1,\, 1.25,\, 1.5,\, 1.75\,\}$$. This is actually equivalent to INT4 quantization with the set of values $$\pm\{\,0,\, 1,\, 2,\, 3,\, 4,\, 5,\, 6,\, 7\,\}$$.
 
-## <sub>III-3. Hardware Implication of Quantization</sub>
+## <sub>III-3. Hardware Implication</sub>
 By reducing the operand bit-width, quantization not only decreases the memory footprint, but also enables more efficient computation using low-precision MAC hardware. When the baseline LLM stores model weights and input activations in BF16, its linear layer will perform a GEMM using BFP16 multiply and FP32 accumulation. As an example, if we employ per-tensor quantization to convert model weights and input activations to INT8, the linear layer can instead perform a GEMM using INT8 multiply and INT32 accumulation, followed by dequantization that multiplies the output matrix with two scale factors. This is visualized below: 
 
 <div style="text-align:center;">
