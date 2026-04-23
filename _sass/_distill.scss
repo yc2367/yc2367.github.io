@@ -91,6 +91,10 @@ d-article {
       minmax(2px, 0.25fr) [toc-line] 1px
       minmax(32px, 2fr);
 
+    a {
+      color: var(--global-text-color) !important;
+    }
+
     nav {
       grid-column: toc;
       a {
@@ -157,7 +161,7 @@ d-appendix {
     d-contents {
       position: static !important;
       display: block;
-      grid-column-start: 3;
+      grid-column-start: 2;
       grid-column-end: -2;
       margin-bottom: 2em;
       margin-left: 2em;
@@ -165,6 +169,9 @@ d-appendix {
       padding-bottom: 0.5em;
       width: 100%;
       border: 1px solid var(--global-hover-color);
+      a {
+        color: var(--global-text-color) !important;
+      }
       nav {
         grid-column: none;
       }
