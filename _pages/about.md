@@ -13,6 +13,8 @@ profile:
 news: true # includes a list of news items
 selected_papers: true # includes a list of papers marked as "selected={true}"
 social: true # includes social icons at the bottom of the page
+
+navbar_fixed: true
 ---
 
 My name is Yuzong Chen, a PhD student in the School of Electrical and Computer Engineering at Cornell University. I am advised by [Prof. Mohamed Abdelfattah](https://www.mohsaied.com/) and affiliated with the [Computer Systems Laboratory (CSL)](https://www.csl.cornell.edu/). My current research focus on Efficient Hardware Architectures for Sparse and Mixed-Precision Deep Learning Acceleration. 

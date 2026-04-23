@@ -16,7 +16,7 @@
   </head>
 
   <!-- Body -->
-  <body class="{% if site.navbar_fixed %}fixed-top-nav{% endif %} {% unless site.footer_fixed %}sticky-bottom-footer{% endunless %}">
+  <body class="{% if page.is_blog %}fixed-top-nav-blog{% elsif site.navbar_fixed %}fixed-top-nav{% endif %} {% unless site.footer_fixed %}sticky-bottom-footer{% endunless %}">
     <!-- Header -->
     {% include header.liquid %}
 
@@ -46,9 +46,6 @@
         {{ content }}
       {% endif %}
     </div>
-
-    <!-- Footer -->
-    {% include footer.liquid %}
 
     <!-- JavaScripts -->
     {% include scripts/jquery.liquid %}

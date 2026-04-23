@@ -77,7 +77,7 @@ d-article {
 
   d-contents {
     position: sticky !important; 
-    top: 3em !important;
+    top: 2em !important;
     align-self: start !important;
     grid-column: 1 / 4;
     grid-row: auto / span 4;
@@ -104,7 +104,7 @@ d-article {
         }
       }
       h3 {
-        margin-top: 2em;
+        margin-top: 0.5em;
         margin-bottom: 0.5em;
       }
       div {

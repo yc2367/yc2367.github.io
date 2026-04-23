@@ -4,7 +4,8 @@ permalink: /publications/
 title: Publications
 description: See my <a href="https://scholar.google.com/citations?user=FM5j_BYAAAAJ">Google Scholar</a> for more information. <br/>* indicates equal contribution.
 nav: true
-nav_order: 2
+nav_order: 1
+navbar_fixed: true
 ---
 
 <!-- _pages/publications.md -->
