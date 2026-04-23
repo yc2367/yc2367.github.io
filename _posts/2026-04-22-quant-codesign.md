@@ -10,7 +10,7 @@ featured: true
 authors:
   - name: Yuzong Chen
     affiliations:
-      name: Cornell University
+      name: Cornell University, New York 
 
 # Optionally, you can add a table of contents to your post.
 # NOTES:
