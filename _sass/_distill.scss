@@ -89,7 +89,7 @@ d-article {
     grid-template-columns:
       minmax(8px, 1fr) [toc] auto
       minmax(2px, 0.25fr) [toc-line] 1px
-      minmax(32px, 2fr);
+      minmax(20px, 2fr);
 
     a {
       color: var(--global-text-color) !important;
