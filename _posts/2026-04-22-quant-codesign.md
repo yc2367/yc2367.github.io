@@ -34,6 +34,8 @@ toc:
     subsections:
       - name: III-1. Block-Wise Quantization
       - name: III-2. Scale Factor Quantization
+      - name: III-3. Hierarchical Scaling for MXFP4
+  - name: Acknowledgment
 
 # Below is an example of injecting additional post-specific styles.
 # If you use this post as a template, delete this _styles block.
@@ -61,7 +63,7 @@ In this post, I will discuss quantization, an essential technique for efficient 
 
 
 ## I. Number Representation
-In general, quantization aims to minimize the hardware memory usage to store numbers and the computational cost to process these numbers, while preserving model accuracy<d-footnote>Although in practice, a small amount of accuracy degradation may be acceptable.</d-footnote>. Hardware is designed to store and process binary bits, i.e., '0' and '1', which are interpreted by hardware according to a number representation (also called number format). This representation defines **how a binary number maps to a real-valued number**. Modern AI hardware typically supports two types of number representations: **Integer (INT)** and **Floating-Point (FP)**, each can have different precisions as illustrated below: 
+In general, quantization aims to minimize the hardware memory usage to store numbers and the computational cost to process these numbers, while preserving model accuracy<d-footnote>Although in practice, a small amount of accuracy degradation may be acceptable.</d-footnote>. Hardware is designed to store and process binary bits, i.e., '0' and '1', which are interpreted according to a number representation (also called number format). This representation defines **how a binary number maps to a real-valued number**. Modern AI hardware typically supports two types of number representations: **Integer (INT)** and **Floating-Point (FP)**, each can have different precisions as illustrated below: 
 
 <div style="text-align:center;">
   <img src="/assets/img/blog/quant_codesign/Number_Representation.png" width="80%" />
@@ -349,9 +351,9 @@ One thing I didn't explain in the above figure, which you might find a little we
 The memory costs of different quantization granularity are much simpler to analyze. In addition to weight, input, and output, quantization stores extra metadata such as the scale factors. For tensor-wise and row-wise quantization, the memory cost of scale factors is pretty negligible when the dot product size is large enough, which is the case for modern LLMs. However, this assumption may not hold for block-wise quantization. For example, with a block size of $$128$$, an FP32 scale factor introduces an overhead of $$32/128 = 0.25$$ bits per element. As the block size further decreases (to improve model performance), the storage overhead of scale factors can no longer be ignored. Thus, for the next quantization technique, I will discuss how to reduce the overhead of scale factors. 
 
 ## <sub>III-2. Scale Factor Quantization</sub>
-While block-wise quantization brings algorithmic benefits by reducing quantization error, it incurs additional hardware cost from storing numerous FP32 scale factors and performing more FP32 multiplications / additions during dequantization. 
+While block-wise quantization brings algorithmic benefits by reducing quantization error, it incurs additional hardware cost from storing numerous FP32 scale factors and performing more FP32 multiplications / additions during dequantization. This overhead restricts the use of very samll block sizes, which are often critical for achieving high accuracy under 4-bit quantization.
 
-The question is: **How can we reduce the cost of scale factors? The answer is surprisingly  straightforward: if quantization can reduce the memory and computation costs of tensor elements, why not apply it to scale factors?** Building on this idea, the industry has proposed two methods to quantize the block scale factor: [Microscaling (MX)](https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf) and [NVIDIA’s (NV)](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/) approach. Both quantize the scale factor to 8 bits, but using different number representations<d-footnote>Besides the scale factor representation, MX and NV also set fixed block sizes of 32 and 16, respectively. However, the concept of block size is not strictly tied to these two approaches. For instance, one can choose to reduce the MX block size from 32 to 16, as did in <a href="https://arxiv.org/abs/2603.08713">this paper from Meta</a>. Therefore, I will focus on discussing the scale factor representation without caring too much about the block size.</d-footnote>: MX uses the 8-bit power-of-two format (E8M0), whereas NV uses the 8-bit floating-point format with 4-bit exponent and 3-bit mantissa (FP8-E4M3). Below is a visualization of how MX and NV represent scale factors, assuming the block elements are quantized to FP4 (i.e., the popular MXFP4 and NVFP4 formats): 
+The question is: **How can we reduce the cost of scale factors? The answer is surprisingly  straightforward: if quantization can reduce the memory and computation costs of tensor elements, why not apply it to scale factors?** Building on this idea, the industry has proposed two methods to quantize the block scale factor: [Microscaling (MX)](https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf) and [NVIDIA’s (NV)](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/) approach. Both quantize the scale factor to 8 bits, but using different number representations<d-footnote>Besides the scale factor representation, the official MX and NV quantization recipe also set fixed block sizes of 32 and 16, respectively. However, the concept of block size is not strictly tied to these two approaches. For instance, one can choose to reduce the MX block size from 32 to 16, as did in <a href="https://arxiv.org/abs/2603.08713">this paper from Meta</a>. Therefore, I will focus on discussing the scale factor representation without caring too much about the block size.</d-footnote>: MX uses the 8-bit power-of-two format (E8M0), whereas NV uses the 8-bit floating-point format with 4-bit exponent and 3-bit mantissa (FP8-E4M3). Below is a visualization of how MX and NV represent scale factors, assuming the block elements are quantized to FP4 (i.e., the popular MXFP4 and NVFP4 formats): 
 
 <div style="text-align:center;">
   <img src="/assets/img/blog/quant_codesign/MXFP4_NVFP4_Overview.png" width="75%" />
@@ -383,7 +385,7 @@ $$\begin{aligned}
 
 Thus, to avoid overflow, the quantized scale factor should be larger than or equal to the original scale factor. 
 
-Interested readers may ask: **Why don't we use the normal rounding (up or down) mechanism when rounding the scale factor to its nearest power-of-two?** In fact, this is exactly what [the original MX quantizer from Microsoft](https://github.com/microsoft/microxcaling/blob/7bc41952de394f5cc5e782baf132e7c7542eb4e4/mx/mx_ops.py#L173) does. However, this naive approach can cause significant overflow of the scaled block, $$\mathrm{B_{S}\,}$$, leading to large saturation error<d-footnote>Hence, you should never refer to that original implementation for MX quantization.</d-footnote>. To better explain this problem, I will use the popular MXFP4 format as an example, where each block is quantized to FP4-E2M1 that can represent $$\{\,0\,, \pm\,0.5\,, \pm\,1\,, \pm\,1.5\,, \pm\,2\,, \pm\,3\,, \pm\,4\,, \pm\,6\,\}$$. Let's analyze what happens to the block maximum, $$\mathrm{B}_{\text{max\,}}$$, when the scale factor is rounded (up or down) to its nearest power-of-two. For simplicity, I will assume $$\mathrm{B}_{\text{max}}$$ is a positive normal FP32 value, leading to the following equations to compute $$\mathrm{B_{S}\,}$$: 
+Interested readers may ask: **Why don't we use the normal rounding (up or down) mechanism when rounding the scale factor to its nearest power-of-two?** In fact, this is exactly what [the original MX quantizer from Microsoft](https://github.com/microsoft/microxcaling/blob/7bc41952de394f5cc5e782baf132e7c7542eb4e4/mx/mx_ops.py#L173) does. However, this naive approach can cause significant overflow of the scaled block, $$\mathrm{B_{S}\,}$$, leading to large saturation error<d-footnote>Hence, you should never refer to that original implementation for MX quantization.</d-footnote>. To better explain this problem, I will use the popular MXFP4 format as an example, where each block is quantized to FP4-E2M1 that can represent $$\{\,0\,, \pm\,0.5\,, \pm\,1\,, \pm\,1.5\,, \pm\,2\,, \pm\,3\,, \pm\,4\,, \pm\,6\,\}$$. Let's analyze what happens to the block maximum, $$\mathrm{B}_{\text{max}\,}$$, when the scale factor is rounded (up or down) to its nearest power-of-two. For simplicity, I will assume $$\mathrm{B}_{\text{max}}$$ is a positive normal FP32 value, leading to the following equations for computing the scaled block maximum, $$\mathrm{B_{\text{max},\,S}}$$: 
 
 $$
 \mathrm{S} = \frac{\mathrm{B}_{\text{max}}}{6} ; \ \  
@@ -399,10 +401,10 @@ $$
 where $$\mathrm{E\,'}$$ is the actual exponent after subtracting the bias $$127$$, and $$\mathrm{M\,'}$$ is the actual mantissa after adding the hidden bit $$1$$ for normal values. Using this representation, the scale factor can be expressed as: 
 
 $$
-\mathrm{S} = \frac{ 2^{\,\mathrm{E\,'}} \cdot \mathrm{M\,'} }{ 2^2 \cdot 1.5 } =  2^{\,\mathrm{E\,'} - \,2} \cdot \frac{\mathrm{M\,'}}{1.5}
+\mathrm{S} = \frac{\mathrm{B}_{\text{max}}}{6} = \frac{ 2^{\,\mathrm{E\,'}} \cdot \mathrm{M\,'} }{ 2^2 \cdot 1.5 } =  2^{\,\mathrm{E\,'} - \,2} \cdot \frac{\mathrm{M\,'}}{1.5}
 $$
 
-Now, assume $$\mathrm{M\,'} > 1.5$$, which accounts for 50% of possible cases<d-footnote>Assume the mantissa is uniformly distributed between [1.0, 2.0), then we have 50% probability that the mantissa is larger than 1.5</d-footnote>, and since $$\mathrm{M\,'} < 2$$ by definition of floating-point, we have: 
+Now, assume $$\mathrm{M\,'} > 1.5$$, which accounts for 50% of possible cases<d-footnote>Assume the mantissa is uniformly distributed between [1, 2), then we have 50% probability that the mantissa is larger than 1.5</d-footnote>, and since $$\mathrm{M\,'} < 2$$ by definition of floating-point, we have: 
 
 $$\begin{aligned}
 & 2^{\,\mathrm{E\,'} - \,2} \cdot \frac{1.5}{1.5} \,<\, \mathrm{S} \,<\, 2^{\,\mathrm{E\,'} - \,2} \cdot \frac{2}{1.5} \\[0.3em]
@@ -414,7 +416,7 @@ $$\begin{aligned}
 \end{aligned}
 $$
 
-The above derivation implies that: If the mantissa of $$\mathrm{B}_{\text{max}}$$ is larger than 1.5, then the scaled $$\mathrm{B}_{\text{max}}$$ will overflow outside the FP4 range<d-footnote>The above analysis can be generalized to other number representations under MX quantization: If the mantissa of B_max is larger than the mantissa of Q_max (e.g., 1.5 for FP4), then rounding (up or down) the scale factor to its nearest power-of-two will cause the scaled X<sub>max</sub> to overflow outside the representable quantization range.</d-footnote>. Consequently, the quantized $$\mathrm{B}_{\text{max}}$$ is always clamped to the largest representable FP4 value, $$6$$, leading to saturation error. On the other hand, if we only round up the scale factor to its nearest power-of-two, we have: 
+The above derivation implies that: If the mantissa of $$\mathrm{B}_{\text{max}}$$ is larger than 1.5, then $$\mathrm{B_{\text{max},\,S}}$$ will overflow outside the FP4 range<d-footnote>The above analysis can be generalized to other number representations under MX quantization: If the mantissa of B_max is larger than the mantissa of Q_max (e.g., 1.5 for FP4), then rounding (up or down) the scale factor to its nearest power-of-two will cause the scaled X<sub>max</sub> to overflow outside the representable quantization range.</d-footnote>. Consequently, the quantized block maximum, $$\mathrm{B_{\text{max},\,Q\,}}$$, is always mapped / clamped to the largest representable FP4 value, $$6$$, leading to saturation error. On the other hand, if we only round up the scale factor to its nearest power-of-two, we have: 
 
 $$\begin{aligned}
 & 2^{\,\mathrm{E\,'} - \,2} \cdot \frac{1.5}{1.5} \,<\, \mathrm{S} \,<\, 2^{\,\mathrm{E\,'} - \,2} \cdot \frac{2}{1.5} \\[0.3em]
@@ -426,7 +428,7 @@ $$\begin{aligned}
 \end{aligned}
 $$
 
-Now, $$\mathrm{B}_{\text{max}}$$ can be mapped to two representable FP4 values: $$3$$ or $$4$$, whichever is closer to the scaled $$\mathrm{B}_{\text{max}}$$. This offers more flexibility compared to the naive rounding mechanism, where the quantized $$\mathrm{B}_{\text{max}}$$ can only be mapped / clamped to $$6$$. 
+Now, $$\mathrm{B_{\text{max},\,Q}}$$ can be mapped to two representable FP4 values: $$3$$ or $$4$$, whichever is closer to $$\mathrm{B_{\text{max},\,S}}$$. This offers more flexibility compared to the naive rounding mechanism, where $$\mathrm{B_{\text{max},\,Q}}$$ can only be mapped / clamped to $$6$$. 
 
 To measure the algorithmic performance of MX quantization under the two scale factor rounding approaches, I implement [the naive MXFP4 quantizer](https://github.com/abdelfattah-lab/NVFP4-RaZeR/blob/5c6857a8fbbcd85e9adc47701e85992fdb1a3217/quantize/quantizer.py#L93) and [the enhanced MXFP4 quantizer](https://github.com/abdelfattah-lab/NVFP4-RaZeR/blob/5c6857a8fbbcd85e9adc47701e85992fdb1a3217/quantize/quantizer.py#L139). The following table shows the perplexity<d-footnote>Perplexity is a widely used metric to quantify the LLM performance, and <b>lower perplexity means better performance</b>.</d-footnote> of Wikitext-2 dataset on several Llama3 and Qwen3 models, under MXFP4 weight-activation quantization with a block size of 16. The round-up approach achieves much better perplexity compared to the naive round-to-nearest approach for power-of-two scale factor quantization. 
 <table style="width: 80%; border-spacing: 5px; margin-left: 1em; margin-top: -1em; margin-bottom: 1.5em;"><thead>
@@ -506,7 +508,7 @@ Thanks to the capability of mantissa scaling, NV reduces the quantization error 
   </tr></thead>
 <tbody>
   <tr>
-    <td> Enhanced MXFP4 </td><td> 8.64 </td><td> 14.14 </td><td> 16.81 </td><td> 10.75 </td>
+    <td> Enhanced MXFP4 </td><td> 8.69 </td><td> 13.58 </td><td> 15.69 </td><td> 10.66 </td>
   </tr>
   <tr>
     <td> NVFP4 </td><td> 7.90 </td><td> 11.97 </td><td> 13.88 </td><td> 10.05 </td>
@@ -522,7 +524,7 @@ The different approaches of MX and NV for block scale quantization introduce a t
   <figcaption style="font-size: 0.95em; margin-top: 8px;"></figcaption>
 </div>  
 
-Consider the popular FP4 block-wise quantization under a block size of 16. Let's analyze the hardware cost of performing GEMM with the two scale factor quantization approaches:
+Consider the popular FP4 block-wise quantization under a block size of 16. Let's analyze the hardware cost of performing block-wise GEMM with the two scale factor quantization approaches:
 - **Block Dot-product**: Since the maximum and minimum FP4 values are $$\pm6$$ and $$\pm0.5$$, a single FP4 multiplication ranges from $$\pm0.25$$ to $$\pm36$$, which can be represented using 9-bit fixed-point. With a block size of 16, the dot-product result becomes 13 bits.
 - **MX Dequantization**: To analyze the hardware cost, let's first write out the binary / decimal values of block scale and dot-product output: 
 
@@ -537,7 +539,7 @@ Consider the popular FP4 block-wise quantization under a block size of 16. Let's
   \mathrm{O_{D}} \,=\,  (-1)^{\,\mathrm{S}} \cdot\, 2^{\mathrm{E_{W}} + \mathrm{E_{A}}-254} \cdot \left(\,\underbrace{\Sigma_{j=0}^{11}\,2^{j-2} \cdot \mathrm{M}_{j}}_{\text{Un-norm Mantissa}} \,\right)
   $$
 
-  Surprisingly, this expression has a very similar structure to the standard 32-bit floating-point representation discussed in Section-I.2: 
+  Interestingly, this expression has a very similar structure to the standard 32-bit floating-point representation discussed in Section-I.2: 
   
   $$
   \text{FP32} \,=\, \mathrm{\underbrace{S}_{Sign} \; \underbrace{E_7\dots E_{0}}_{\text{Exponent}} \; \underbrace{M_{22}\dots M_{0}}_{\text{Mantissa}}} \,= \,(-1)^{\mathrm{S}} \cdot\, \mathrm{2^{E-127} \cdot 1.{M}}
@@ -561,8 +563,16 @@ Consider the popular FP4 block-wise quantization under a block size of 16. Let's
 
   Similar to MX, this expression closely matches the standard floating-point representation. The dequantized output sign is the FP sign, and the FP exponent $$\mathrm{E} = \mathrm{E_{W}} + \mathrm{E_{A}} - 14$$ is calculated via unsigned integer addition. However, calculating the dequantized output mantissa is more complicated, which involves a 4-bit multiplication between the two scale factors' mantissa, followed by multiplying the 12-bit output mantissa. Then, the dequantized output mantissa is normalized to the standard FP mantissa via leading-one detector and shifter. Finally, the three binary components: sign, exponent, mantissa of dequantized output, are concatenated together to produce a FP24-E5M19 number for cross-block partial sum accumulation. 
 
-Based on the above analysis, the NV dequantizer differs from the MX dequantizer in two notable aspects: (1) It uses a slightly cheaper adder (4-bit vs. 8-bit) for exponent addition; (2) But it requires a much more expensive $$4\text{-bit} \times 4\text{-bit} \times 12\text{-bit}$$ multiplier for mantissa calculation. Thus, the NV dequantizer consumes larger hardware area. For instance, [this paper from Meta](https://arxiv.org/abs/2603.08713) claims that NVFP4 incurs $$12.6\%$$ total tensor core area overhead relative to MXFP4, under the same block size of 16.
+Based on the above analysis, the NV dequantizer differs from the MX dequantizer in two notable aspects: (1) It uses a slightly cheaper adder (4-bit vs. 8-bit) for exponent addition; (2) But it requires much more expensive multiplier ($$4\text{-bit} \times 4\text{-bit} \times 12\text{-bit}$$) for mantissa multiplication. Thus, the GEMM hardware<d-footnote>Also called tensor core in many AI chips.</d-footnote> of NV consumes larger area than that of MX. For example, according to [this paper from Meta](https://arxiv.org/abs/2603.08713), NVFP4 incurs $$12.6\%$$ total GEMM hardware area overhead relative to MXFP4, under the same block size of 16.
 
+
+
+<!-- ## <sub>III-3. Hierarchical Scaling for MXFP4</sub>
+MXFP4 and NVFP4 are two mainstream formats for 4-bit LLM quantization. As discussed in the previous section, MX and NV approaches to scale factor quantization involve different trade-offs between model accuracy and computation cost. While NV offers betters accuracy than MX, it requires more complicated hardware for dequantization, leading to lower GEMM hardware efficiency. Moreover, NVFP4 is currently only supported by NVIDIA GPUs, whereas MX is standardized across the industry. This section presents two case studies from Meta and DeepSeek, demonstrating how MXFP4 can be enhanced to improve both accuracy and efficiency. -->
+
+
+## Acknowledgment
+Special thanks to <a href="https://www.linkedin.com/in/xilai-dai/">Xilai Dai</a> (Cornell University), <a href="https://micas.esat.kuleuven.be/team/chao-fang">Dr. Chao Fang</a> (KU Leuven), and <a href="https://www.mohsaied.com">Prof. Mohamed Abdelfattah</a> (Cornell University), for helping shape out the content of this blog. 
 
 <!-- 
 ## <sub>III-3. Enhanced MXFP4 and NVFP4</sub>
