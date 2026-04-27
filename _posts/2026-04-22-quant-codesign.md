@@ -25,6 +25,10 @@ toc:
       - name: I-1. Integer (INT)
       - name: I-2. Floating-Point (FP)
       - name: I-3. Hardware for INT and FP Arithmetic
+        # subsubsections:
+        #   - name: A. Integer Addition and Multiplication
+        #   - name: B. Floating-Point Multiplication
+        #   - name: C. Floating-Point Addition
   - name: II. Quantization Basics
     subsections:
       - name: II-1. Clssification of Quantization Methods
@@ -34,6 +38,9 @@ toc:
     subsections:
       - name: III-1. Block-Wise Quantization
       - name: III-2. Scale Factor Quantization
+        # subsubsections:
+        #   - name: A. Microscaling (MX)
+        #   - name: B. NVIDIA (NV) Approach
       - name: III-3. Hierarchical Scaling for MXFP4
   - name: Acknowledgment
 
@@ -108,12 +115,12 @@ For LLM training and inference, the default number representations are the [32-b
 ## <sub>I-3. Hardware for INT and FP Arithmetic</sub>
 Given the importance of hardware efficiency for LLMs, it is useful to understand **how a Multiply-Accumulate (MAC), the key operation in LLM training and inference, is carried out on hardware.** Because a MAC consists of multiplication and addition, I will discuss the hardware implication of these two primitive operations under integer and floating-point representation. 
 
-<h3 style="margin-top: 1rem; margin-bottom: -0.25rem;">Integer Addition and Multiplication</h3>
+### <sub>Integer Addition and Multiplication</sub>
 The simplest integer adder is [Ripple-Carry Adder](https://en.wikipedia.org/wiki/Adder_(electronics)#Ripple-carry_adder), whose area and delay complexities ore $$\mathrm{O(N)}$$<d-footnote>This bound assumes that a binary full-adder has a unit area and delay complexity of O(1).</d-footnote> for $$\mathrm{N}$$-bit integer addition. Other adder architectures include [Carry-Select Adder](https://en.wikipedia.org/wiki/Carry-select_adder), [Carry-Lookahead Adder](https://en.wikipedia.org/wiki/Carry-lookahead_adder), etc., which offer different trade-offs between area and delay. 
 
 The simplest [integer multiplier](https://en.wikipedia.org/wiki/Binary_multiplier) multiplies every bits of two multiplicands via logical AND operations, followed by reducing these binary products via adder chains. This leads to an area complexity of $$\mathrm{O(N^2)}$$ for $$\mathrm{N}$$-bit integer multiplication. Modern integer multipliers employ more efficient architectures, such as [Wallace Tree](https://en.wikipedia.org/wiki/Wallace_tree) and [Dadda Tree](https://en.wikipedia.org/wiki/Dadda_multiplier), for fast reduction of binary products. 
 
-<h3 style="margin-top: 1rem; margin-bottom: -0.25rem;">Floating-Point Multiplication</h3>
+### <sub>Floating-Point Multiplication</sub>
 The floating-point MAC is rather complicated as it needs to deal with exponent. To simply the discussion, I will only focus on *normal* floating-point numbers, whose binary exponent is larger than zero. 
 
 Consider two normal floating-point numbers $$\mathrm{F}_{1}$$ and $$\mathrm{F}_{2}\,$$: 
@@ -174,7 +181,7 @@ As discussed before, integer adder and multiplier have area complexity of $$\mat
 </tbody></table>
 
 
-<h3 style="margin-top: 1rem; margin-bottom: -0.25rem;">Floating-Point Addition</h3>
+### <sub>Floating-Point Addition</sub>
 Again, consider two normal floating-point numbers $$\mathrm{F}_{1}$$ and $$\mathrm{F}_{2}\,$$: 
 
 $$\begin{aligned}
@@ -360,7 +367,7 @@ The question is: **How can we reduce the cost of scale factors? The answer is su
   <figcaption style="font-size: 0.95em; margin-top: 8px;"></figcaption>
 </div> 
 
-<h3 style="margin-top: 1rem; margin-bottom: -0.25rem;">Microscaling (MX) Approach</h3>
+### <sub>Microscaling (MX)</sub>
 MX is standardized by the Open Compute Project, and widely supported by recent AI chips such as AMD Radeon, Meta MTIA, and Microsoft MAIA. In this approach, the high-precision scale factor is quantized to an 8-bit power-of-two (E8M0), as described in the following equations: 
 
 $$
@@ -392,7 +399,7 @@ $$
 \mathrm{S_{Q}} = 2^{\left\lfloor\,\texttt{log2}\left( \,\mathrm{S} \,\right) \,\right\rceil} ; \ \ 
 \mathrm{B_{\text{max},\,S}} = \frac{\mathrm{B}_{\text{max}}}{\mathrm{S_{Q}}}$$
 
-Since $$\mathrm{B}_{\text{max}}$$ is a positive normal FP32 value, I can write it in floating-point representation as described in Section-I.2: 
+Since $$\mathrm{B}_{\text{max}}$$ is a positive normal FP32 value, I can write it in floating-point representation as described in [Section I-2](#i-2-floating-point-fp): 
 
 $$
 \mathrm{B_{\text{max}}} = 0\;\mathrm{\underbrace{E_{7}\dots E_{0}}_{\text{Exponent}} \; \underbrace{M_{22}\dots M_{0}}_{\text{Mantissa}}} = (-1)^0 \cdot 2^{\mathrm{E}-127} \cdot (\,1+\mathrm{M}\,) = 2^{\mathrm{E\,'}} \cdot \mathrm{M\,'}
@@ -439,7 +446,7 @@ else: # (B_max.man <= 1.5)
 
 block_scale = 2 ** block_exp
 ```
-Assume the block element is represented in BF16-E8M7, then a SystemVerilog implementation can be:
+which completely eliminates the division ($$\mathrm{B_{\text{max}}}\,/\,6$$), logarithm, and ceiling operations to compute the block scale. Assume the block element is represented in BF16-E8M7, then a SystemVerilog implementation can be:
 ```verilog
 input  logic [15:0] B_max;
 output logic [8:0]  block_exp;
@@ -474,8 +481,8 @@ To measure the algorithmic performance of MX under the two rounding approaches f
 </tbody></table>
 
 
-<h3 style="margin-top: 1rem; margin-bottom: -0.25rem;">NVIDIA's (NV) Approach</h3>
-Recall from Section-III.1, if the scale factor is accurately represented (e.g., in FP32), then the maximum element can be accurately quantized without error. However, the E8M0 scale factor used in MX violates this condition and introduces error for the block's maximum element<d-footnote>Again, the "maximum element" refers to the element with maximum magnitude.</d-footnote>. This raises the question: **Can we minimize the quantization error of block maximum while still using an 8-bit scale factor?** 
+### <sub>b. NVIDIA (NV) Approach</sub>
+Recall from [Section III-1](#iii-1-block-wise-quantization), if the scale factor is accurately represented (e.g., in FP32), then the maximum element can be accurately quantized without error. However, the E8M0 scale factor used in MX violates this condition and introduces error for the block's maximum element<d-footnote>Again, the "maximum element" refers to the element with maximum magnitude.</d-footnote>. This raises the question: **Can we minimize the quantization error of block maximum while still using an 8-bit scale factor?** 
 
 Let's try to understand the limitations of MX when quantizing the block maximum, $$\mathrm{B}_{\text{max}}$$. Again, for simplicity, assume $$\mathrm{B}_{\text{max}}$$ is a positive normal FP32 value: 
 
@@ -510,7 +517,7 @@ $$\begin{aligned}
 \end{aligned}
 $$
 
-where $$\mathrm{Q}_{\text{B,max}}$$ is the maximum quantization value for the block element, $$\mathrm{Q}_{\text{S,max}}$$ is the maximum quantization value for the block scale (i.e., $$448$$ for FP8), $$\mathrm{S}'$$ is the scale of block scale, $$\mathrm{T}_{\text{max}}$$ is the tensor maximum,  $$\mathrm{S_{S}}$$ is the scaled block scale, $$\mathrm{S_{Q}}$$ is the quantized block scale, and $$\mathrm{S_{D}}$$ is the final dquantized block scale. This block scale quantization process is exactly the same as how we quantize a tensor as discussed in Section-II.2. The mathematical equations are therefore also the same as those for tensor quantization, except that we change $$\mathrm{X}$$ to $$\mathrm{S}$$, $$\mathrm{S}$$ to $$\mathrm{S'}$$, and $$\mathrm{Q}$$ to FP8. Below is a visualization to help you understand the FP8 block scale quantization using the popular NVFP4 format (i.e., $$\mathrm{Q}_{\text{B,max}}$$ = 6) as an example. 
+where $$\mathrm{Q}_{\text{B,max}}$$ is the maximum quantization value for the block element, $$\mathrm{Q}_{\text{S,max}}$$ is the maximum quantization value for the block scale (i.e., $$448$$ for FP8), $$\mathrm{S}'$$ is the scale of block scale, $$\mathrm{T}_{\text{max}}$$ is the tensor maximum,  $$\mathrm{S_{S}}$$ is the scaled block scale, $$\mathrm{S_{Q}}$$ is the quantized block scale, and $$\mathrm{S_{D}}$$ is the final dquantized block scale. This block scale quantization process is exactly the same as how we quantize a tensor as discussed in [Section II-2](#ii-2-mathematical-background). The mathematical equations are therefore also the same as those for tensor quantization, except that we change $$\mathrm{X}$$ to $$\mathrm{S}$$, $$\mathrm{S}$$ to $$\mathrm{S'}$$, and $$\mathrm{Q}$$ to FP8. Below is a visualization to help you understand the FP8 block scale quantization using the popular NVFP4 format (i.e., $$\mathrm{Q}_{\text{B,max}}$$ = 6) as an example. 
 
 <div style="text-align:center;">
   <img src="/assets/img/blog/quant_codesign/NVFP4_Scale_Quant.png" width="100%" />
@@ -519,7 +526,7 @@ where $$\mathrm{Q}_{\text{B,max}}$$ is the maximum quantization value for the bl
 
 The above equation for calculating $$\mathrm{S'}$$ indicates a **tensor-wise scaling**, as also described in [NVIDIA's blog](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/)<d-footnote>Personally, I find NVIDIA’s description of tensor-wise scaling somewhat vague; hopefully, my explanation provides greater clarity.</d-footnote>. The reason is that, when following the standard quantization procedure to quantize block scales, we meed to determine the maximum across all block scales. Since each block scale equals to its block maximum divided by $$6$$, this reduces to finding the maximum of all block maxima divided by $$6$$, which is simply the tensor maximum divided by $$6$$. 
 
-You may also wonder: **Why choosing E4M3 instead of other FP8 variants such as E5M2 / E3M4 when quantizing the block scale?** The reason is that, empirically, E4M3 can better fit the numerical distribution of block maxima<d-footnote>According to our discussion in Section-II.2, quantizing block scales is equivalent to quantizing block maxima, since the latter differs from the former only by a constant factor (i.e., $$Q_<sub>B,max </sub>$$).</d-footnote> in LLM weight and activation tensors, resulting in lower quantization error than other FP8 variants. This brings another important topic, *Quantization Format for Tensor Elements*, which I will cover soon.
+You may also wonder: **Why choosing E4M3 instead of other FP8 variants such as E5M2 / E3M4 when quantizing the block scale?** The reason is that, empirically, E4M3 can better fit the numerical distribution of block maxima<d-footnote>According to our discussion in [Section II-2](#ii-2-mathematical-background), quantizing block scales is equivalent to quantizing block maxima, since the latter differs from the former only by a constant factor (i.e., $$Q_<sub>B,max </sub>$$).</d-footnote> in LLM weight and activation tensors, resulting in lower quantization error than other FP8 variants. This brings another important topic, *Quantization Format for Tensor Elements*, which I will cover soon.
 
 Thanks to the capability of mantissa scaling, NV reduces the quantization error of scale factors compared to MX, which in turn reduces the quantization error of block elements. To quantify these benefits, I implement [the NVFP4 quantizer](https://github.com/abdelfattah-lab/NVFP4-RaZeR/blob/5c6857a8fbbcd85e9adc47701e85992fdb1a3217/quantize/quantizer.py#L375) and compare it with [the enhanced MXFP4 quantizer](https://github.com/abdelfattah-lab/NVFP4-RaZeR/blob/5c6857a8fbbcd85e9adc47701e85992fdb1a3217/quantize/quantizer.py#L139) discussed in the last section. The following table shows the perplexity of Wikitext-2 dataset on several Llama3 and Qwen3 models, under NVFP4 and MXFP4 weight-activation quantization with a block size of 16. NVFP4 achieves much better perplexity than MXFP4. 
 
@@ -564,7 +571,7 @@ Consider the popular FP4 block-wise quantization under a block size of 16. Let's
   \mathrm{O_{D}} \,=\,  (-1)^{\,\mathrm{S}} \cdot\, 2^{\mathrm{E_{W}} + \mathrm{E_{A}}-254} \cdot \left(\,\underbrace{\Sigma_{j=0}^{11}\,2^{j-2} \cdot \mathrm{M}_{j}}_{\text{Un-norm Mantissa}} \,\right)
   $$
 
-  Interestingly, this expression has a very similar structure to the standard 32-bit floating-point representation discussed in Section-I.2: 
+  Interestingly, this expression has a very similar structure to the standard 32-bit floating-point representation discussed in [Section I-2](#i-2-floating-point-fp): 
   
   $$
   \text{FP32} \,=\, \mathrm{\underbrace{S}_{Sign} \; \underbrace{E_7\dots E_{0}}_{\text{Exponent}} \; \underbrace{M_{22}\dots M_{0}}_{\text{Mantissa}}} \,= \,(-1)^{\mathrm{S}} \cdot\, \mathrm{2^{E-127} \cdot 1.{M}}
@@ -580,7 +587,7 @@ Consider the popular FP4 block-wise quantization under a block size of 16. Let's
   \mathrm{O} \,&=\, \mathrm{S \underbrace{M_{11}\dots M_{0}}_{\text{Un-norm Mantissa}}} =\,  (-1)^{\mathrm{S}} \cdot \left(\,\Sigma_{j=0}^{11}\,2^{j-2}\cdot\mathrm{M}_{j} \right)
   \end{aligned}$$
 
-  Note that the scale factor's binary pattern does not need the sign bit<d-footnote>As will be shown later, this unused sign bit can even be repurposed to further enhance the NVFP4 quantization accuracy.</d-footnote>, as it is always positive by definition of quantization. Based on the above equations, the dequantized output should be: 
+  Note that the scale factor's binary encoding does not need the sign bit, as it is always positive by definition of quantization. Based on the above equations, the dequantized output should be: 
 
   $$
   \mathrm{O_{D}} \,=\,  (-1)^{\mathrm{S}} \cdot\, 2^{\mathrm{E_{W}} + \mathrm{E_{A}}-14} \cdot \left[\,1.\mathrm{M_{W}} \cdot 1.\mathrm{M_{A}} \cdot \left(\,\Sigma_{j=0}^{11}\,2^{j-2}\cdot\mathrm{M}_{j}\,\right) \,\right]
@@ -588,18 +595,63 @@ Consider the popular FP4 block-wise quantization under a block size of 16. Let's
 
   Similar to MX, this expression closely matches the standard floating-point representation. The dequantized output sign is the FP sign, and the FP exponent $$\mathrm{E} = \mathrm{E_{W}} + \mathrm{E_{A}} - 14$$ is calculated via unsigned integer addition. However, calculating the dequantized output mantissa is more complicated, which involves a 4-bit multiplication between the two scale factors' mantissa, followed by multiplying the 12-bit output mantissa. Then, the dequantized output mantissa is normalized to the standard FP mantissa via leading-one detector and shifter. Finally, the three binary components: sign, exponent, mantissa of dequantized output, are concatenated together to produce a FP24-E5M19 number for cross-block partial sum accumulation. 
 
-Based on the above analysis, the NV dequantizer differs from the MX dequantizer in two notable aspects: (1) It uses a slightly cheaper adder (4-bit vs. 8-bit) for exponent addition; (2) But it requires much more expensive multiplier ($$4\text{-bit} \times 4\text{-bit} \times 12\text{-bit}$$) for mantissa multiplication. Thus, the GEMM hardware<d-footnote>Also called tensor core in many AI chips.</d-footnote> of NV consumes larger area than that of MX<d-footnote>For example, according to <a href="https://arxiv.org/abs/2603.08713">this paper from Meta</a>, NVFP4 incurs $$12.6\%$$ total GEMM hardware area overhead relative to MXFP4, under the same block size of 16.</d-footnote>. 
+Based on the above analysis, the NV dequantizer differs from the MX dequantizer in two notable aspects: (1) It uses a slightly cheaper adder (4-bit vs. 8-bit) for exponent addition; (2) But it requires much more expensive multiplier ($$4\text{-bit} \times 4\text{-bit} \times 12\text{-bit}$$) for mantissa multiplication. Thus, the GEMM hardware<d-footnote>Also called tensor core in many AI chips.</d-footnote> of NV consumes larger area than that of MX<d-footnote>For example, according to <a href="https://arxiv.org/abs/2603.08713">this paper from Meta</a>, NVFP4 incurs 12.6% total GEMM hardware area overhead relative to MXFP4, under the same block size of 16.</d-footnote>. 
 
 
 
-<!-- ## <sub>III-3. Hierarchical Scaling for MXFP4</sub>
-As discussed in the previous section, NV quantization requires an FP32 tensor-wise scaling in addition to the FP8-E4M3 block-wise scaling. This multi-level scheme is commonly referred to as **hierarchical scaling**. The main reason behind NV's hierarchical scaling is that, the FP8-E4M3 block scale alone may not fully cover a tensor's dynamic range<d-footnote>For example, under NVFP4 quantization, the FP8-E4M3 scale has a dynamic range of [<sup> </sup>2<sup>-9</sup>, 448<sup> </sup>]. Multiplying this scale with the FP4 element yields a dynamic range of [<sup> </sup>2<sup>-10</sup>, 2688<sup> </sup>], which is insufficient to represent LLM tensors.</d-footnote>. On the other hand, MX quantization only requires a single-level block-wise scaling, due to the large dynamic range enabled by its E8M0 block scale<d-footnote>For example, under MXFP4 quantization, the E8M0 scale has a dynamic range of [<sup> </sup>2<sup>-126</sup>, 2<sup>125</sup><sup> </sup>]. Multiplying this scale with the FP4 element yields a dynamic range of [<sup> </sup>2<sup>-127</sup>, 1.5×2<sup>127</sup><sup> </sup>], which is very close to BF16's dynamic range [<sup> </sup>2<sup>-133</sup>, 1.9921875×2<sup>127</sup><sup> </sup>].</d-footnote>. This naturally raises the question: **Can hierarchical scaling also be applied to MX?** This section presents two case studies from Meta and DeepSeek, demonstrating how hierarchical scaling can be applied to MXFP4 to achieve better model accuracy and hardware efficiency. 
+## <sub>III-3. Hierarchical Scaling for MXFP4</sub>
+As discussed in the previous section, NV quantization requires an FP32 tensor scale in addition to the FP8-E4M3 block scale. This multi-level scheme is commonly referred to as **hierarchical scaling**. The main reason behind NV's hierarchical scaling is that, the FP8-E4M3 block scale alone may not fully cover a tensor's dynamic range<d-footnote>For example, under NVFP4 quantization, the FP8-E4M3 scale has a dynamic range of [<sup> </sup>2<sup>-9</sup>, 448<sup> </sup>]. Multiplying this scale with the FP4 element yields a dynamic range of [<sup> </sup>2<sup>-10</sup>, 2688<sup> </sup>], which is insufficient to represent LLM tensors.</d-footnote>. On the other hand, MX quantization only requires a single-level block-wise scaling, due to the large dynamic range enabled by its E8M0 block scale<d-footnote>For example, under MXFP4 quantization, the E8M0 scale has a dynamic range of [<sup> </sup>2<sup>-126</sup>, 2<sup>125</sup><sup> </sup>]. Multiplying this scale with the FP4 element yields a dynamic range of [<sup> </sup>2<sup>-127</sup>, 1.5×2<sup>127</sup><sup> </sup>], which is very close to BF16's dynamic range [<sup> </sup>2<sup>-133</sup>, 1.9921875×2<sup>127</sup><sup> </sup>].</d-footnote>. This difference naturally raises the question: **Can MX also employ hierarchical scaling?** This section presents two case studies from Meta and DeepSeek, demonstrating how hierarchical scaling can enhance MXFP4 to achieve better model accuracy and hardware efficiency. 
 
 <!-- MXFP4 and NVFP4 are two mainstream formats for 4-bit LLM quantization. However, NVFP4 is currently only supported by NVIDIA GPUs, whereas MXFP4 is standardized across the industry.  -->
-<h3 style="margin-top: 1rem; margin-bottom: -0.25rem;">Meta's MXFP4 Recipe</h3>
-At a first glance, hierarchical scaling seems kind of trivial to MXFP4 given that the E8M0 scale already covers the needed dynamic range. As discussed in the previous section, MX and NV approaches to scale factor quantization involve different trade-offs between model accuracy and computation cost. While MX requires simpler hardware for dequantization, it leads to notably lower accuracy than NV. To improve MXFP4 quantization fidelity, Meta introduces two algorithmic techniques 
+<h3 style="margin-top: 1rem; margin-bottom: -0.25rem;">Meta's MXFP4 Quantization Recipe</h3>
+At first glance, hierarchical scaling may seem unnecessary for MXFP4, since the E8M0 block scale already covers the tensor's full dynamic range. However, as discussed in [Section III-2](#iii-2-scale-factor-quantization), one way to reduce the MX quantization error is to bring the mantissa of block maximum closer to that of quantization maximum through additional mantissa scaling, which requires the scale factor to contain mantissa bits. However, directly adding mantissa bits to the E8M0 block scale introduces significant memory and computation overhead during dequantization.
 
-Although this question seems kind of trivial at a first glance given that the E8M0 scale already covers the required dynamic range. But reca -->
+To enable mantissa scaling for MX without sacrificing hardware efficiency, Meta proposes a two-level [Macro Block Scaling](https://arxiv.org/abs/2603.08713) (MBS) scheme. First, a macro-block (MB) of size $$1 \times 128$$ is scaled using an 8-bit mantissa (E0M8), aligning the mantissa of its maximum value close to $$1.5$$ (i.e., the mantissa of FP4 maximum). The macro-block is then partitioned into eight local-blocks (LB) of size $$1 \times 16$$, each applied MX scaling with an E8M0 block scale. This procedure is visualized below: 
+<div style="text-align:center;">
+  <img src="/assets/img/blog/quant_codesign/Meta_MXFP4_Software.png" width="75%" />
+  <figcaption style="font-size: 0.95em; margin-top: 8px;"></figcaption>
+</div>  
+where the E0M8 macro-block scale is obtained by extracting the top 8 mantissa bits of the FP32 scale, i.e., $$\frac{\texttt{max}(\,\mathrm{|MB|}\,)}{1.5} \text{ & 0x007f8000}$$.
+<!-- $$\begin{aligned}
+&\mathrm{S_{B_M}} = \left(\frac{ |\mathrm{B_M}_{\text{max}}| }{ 1.5 }\right); \ \text{Retain the top 8 mantissa bits of } \mathrm{S_{B_M}} \\[0.3em] 
+&\mathrm{B_{M,\,S}} = \frac{\mathrm{B_M}}{\mathrm{S_{B_M}}} \\[0.3em] 
+&\text{For every } \mathrm{B_{L\,}} \text{ in } \mathrm{B_{M,\,S\,}}; \text{ Apply MX quantization to } \mathrm{B_L}
+\end{aligned}
+$$ -->
+
+**Why Does MBS Help?** Let's analyze how MBS affects the macro-block maximum, $$\mathrm{B_M}_{\text{max}}$$. Assume $$\mathrm{B_M}_{\text{max}}$$ is a positive normal FP32 value, leading to the following equations for MBS: 
+
+$$\begin{aligned}
+&\mathrm{B_M}_{\text{max}} = 2^{\mathrm{E'}} \cdot \mathrm{M'} \quad \text{(Assume positive normal value.)} \\[0.1em]
+
+&\mathrm{S_{B_M}} = \left(\frac{ \mathrm{B_M}_{\text{max}} }{ 1.5 }\right) = \begin{cases} 
+\; 2^{\mathrm{E'}} \times \left( \frac{\mathrm{M'}}{1.5} \right)   & \text{if } \mathrm{M'} \geq 1.5 \\[0.1em]
+\; 2^{\mathrm{E'}-1} \times \left( \frac{\mathrm{M'}}{1.5} \cdot 2 \right)   & \text{if } \mathrm{M'} < 1.5 
+\end{cases} \\[0.3em]
+
+&\text{(Assume retaining the top 8 bits can sufficiently preserve the whole mantissa.)} \\
+&\mathrm{S_{B_M}} = \begin{cases} 
+\; \frac{\mathrm{M'}}{1.5}   & \text{if } \mathrm{M'} \geq 1.5 \\[0.1em]
+\; \frac{\mathrm{M'}}{1.5} \cdot 2   & \text{if } \mathrm{M'} < 1.5 
+\end{cases} \\[0.3em]
+
+&\mathrm{B_{M,\,S}} = \frac{\mathrm{B_M}}{\mathrm{S_{B_M}}} = \begin{cases} 
+\; 2^{\mathrm{E'}} \cdot 1.5   & \text{if } \mathrm{M'} \geq 1.5 \\[0.1em]
+\; 2^{\mathrm{E' - 1}} \cdot 1.5   & \text{if } \mathrm{M'} < 1.5 
+\end{cases}  \\[0.3em] 
+\end{aligned}
+$$
+
+The above analysis assumes that retaining the top 8 mantissa bits is sufficient to preserve the whole mantissa, which is generally true. Empirically, Meta finds that the top 8 mantissa bits can approximate the original FP32 mantissa with $$<0.3\%$$ error. After performing MBS, the scaled maximum $$\mathrm{B_{M,\,S}}$$ has a mantissa of $$1.5$$, which can be accrately quantized to 6.0 during the MXFP4 quantization of local-blocks. 
+
+The benefits of MBS is two fold. First, it enables more accurate quantization of the macro-block maximum, thereby preserving the numerical afidelity of many high-magnitude outliers. Second, the $$1 \times 128$$ macro-block size significantly reduces the memory and dequantization cost compared to allocating extra mantissa bits to the local-block scale. 
+
+**Hardware Implication of MBS**:  While Meta claims that MBS does not require any change to the GEMM hardware (tensor core), it still necessitates a careful architecture co-design to balance the throughput between tensor core and vector core. Below is a visualization of the GEMM computation flow using MBS:
+<div style="text-align:center;">
+  <img src="/assets/img/blog/quant_codesign/Meta_MXFP4_Hardware.png" width="100%" />
+  <figcaption style="font-size: 0.95em; margin-top: 8px;"></figcaption>
+</div>  
+Within a macro-block, the eight local-blocks are all quantized to MXFP4. Therefore, the macro-block dot product, comprising 128 MAC operations, can be accelerated using the dedicated MXFP4 tensor core. However, the macro-block output must be dequantized by multiplying it with two E0M8 scales, followed by accumulation across different macro-blocks. This process is realized on the FP32 vector core and involves 2 MAC operations<d-footnote>Technically, the macro-block dequantization involves 1 multiplication between the two E0M8 scales and 1 MAC with the macro-block output. However, most AI hardware performs fused MAC operations in a single cycle; if only a multiplication or addition is issued, the other part of the MAC unit becomes idle.</d-footnote>. In order to fully utilize the MXFP4 tensor core for GEMM, the vector core throughput should exceed $$1/64$$ of the tensor core throughput<d-footnote>This requirement may not be met on some existing GPUs. For example, on <a href="https://www.nvidia.com/en-us/data-center/gb300-nvl72/?ncid=no-ncid">NVIDIA GB300 NVL72</a>, the FP32 vector core throughput is only 1/180 of the FP4 tensor core throughput.</d-footnote>.
 
 
 ## Acknowledgment

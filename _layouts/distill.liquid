@@ -37,6 +37,18 @@
           bottom: 0em; /* adjust as needed */
           font-size: 1.5rem;
         }
+        .post h3 {
+          margin-top: 1.25rem; 
+          margin-bottom: 0rem; 
+          padding-bottom: 0rem;
+        }
+        h3 sub {
+          vertical-align: baseline;  /* or tweak this */
+          position: relative;
+          top: 0em; /* adjust as needed */
+          bottom: 0em; /* adjust as needed */
+          font-size: 1.4rem;
+        }
         d-article p {
           margin-bottom: 0.5rem; /* or 0 if you want tight */
           margin-top: 0.5rem; /* or 0 if you want tight */
@@ -131,6 +143,13 @@
                       <li>
                         <a href="#{{ subsection.name | slugify }}">{{ subsection.name }}</a>
                       </li>
+                      {% if subsection.subsubsections %}
+                        {% for subsubsection in subsection.subsubsections %}
+                          <li style="padding-left: 1.5em">
+                            <a href="#{{ subsubsection.name | slugify }}">{{ subsubsection.name }}</a>
+                          </li>
+                        {% endfor %}
+                      {% endif %}
                     {% endfor %}
                   </ul>
                 {% endif %}
