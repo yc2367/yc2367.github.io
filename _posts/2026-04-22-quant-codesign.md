@@ -361,7 +361,7 @@ The question is: **How can we reduce the cost of scale factors? The answer is su
 </div> 
 
 <h3 style="margin-top: 1rem; margin-bottom: -0.25rem;">Microscaling (MX) Approach</h3>
-MX is standardized by the Open Compute Project, and widely supported by recent AI chips such as AMD Radeon, Meta MTIA, and Microsoft MAIA. In this approach, the high-precision scale factor is quantized to power-of-two, as described in the following equations: 
+MX is standardized by the Open Compute Project, and widely supported by recent AI chips such as AMD Radeon, Meta MTIA, and Microsoft MAIA. In this approach, the high-precision scale factor is quantized to an 8-bit power-of-two (E8M0), as described in the following equations: 
 
 $$
 \mathrm{S} = \frac{ |\mathrm{B}|_{\text{max}} }{ \mathrm{Q}_{\text{max}} } ; \ \ 
@@ -416,7 +416,7 @@ $$\begin{aligned}
 \end{aligned}
 $$
 
-The above derivation implies that: If the mantissa of $$\mathrm{B}_{\text{max}}$$ is larger than 1.5, then $$\mathrm{B_{\text{max},\,S}}$$ will overflow outside the FP4 range<d-footnote>The above analysis can be generalized to other number representations under MX quantization: If the mantissa of B_max is larger than the mantissa of Q_max (e.g., 1.5 for FP4), then rounding (up or down) the scale factor to its nearest power-of-two will cause the scaled X<sub>max</sub> to overflow outside the representable quantization range.</d-footnote>. Consequently, the quantized block maximum, $$\mathrm{B_{\text{max},\,Q\,}}$$, is always mapped / clamped to the largest representable FP4 value, $$6$$, leading to saturation error. On the other hand, if we only round up the scale factor to its nearest power-of-two, we have: 
+The above derivation implies that: If the mantissa of $$\mathrm{B}_{\text{max}}$$ is larger than 1.5, then $$\mathrm{B_{\text{max},\,S}}$$ will overflow outside the FP4 range<d-footnote>The above analysis can be generalized to other number representations under MX quantization: If the mantissa of B_max is larger than the mantissa of Q_max (e.g., 1.5 for FP4), then rounding (up or down) the scale factor to its nearest power-of-two will cause B<sub>max, S</sub> to overflow outside the representable quantization range.</d-footnote>. Consequently, the quantized block maximum, $$\mathrm{B_{\text{max},\,Q\,}}$$, is always mapped / clamped to the largest representable FP4 value, $$6$$, leading to saturation error. On the other hand, if we only round up the scale factor to its nearest power-of-two, we have: 
 
 $$\begin{aligned}
 & 2^{\,\mathrm{E\,'} - \,2} \cdot \frac{1.5}{1.5} \,<\, \mathrm{S} \,<\, 2^{\,\mathrm{E\,'} - \,2} \cdot \frac{2}{1.5} \\[0.3em]
@@ -430,7 +430,32 @@ $$
 
 Now, $$\mathrm{B_{\text{max},\,Q}}$$ can be mapped to two representable FP4 values: $$3$$ or $$4$$, whichever is closer to $$\mathrm{B_{\text{max},\,S}}$$. This offers more flexibility compared to the naive rounding mechanism, where $$\mathrm{B_{\text{max},\,Q}}$$ can only be mapped / clamped to $$6$$. 
 
-To measure the algorithmic performance of MX quantization under the two scale factor rounding approaches, I implement [the naive MXFP4 quantizer](https://github.com/abdelfattah-lab/NVFP4-RaZeR/blob/5c6857a8fbbcd85e9adc47701e85992fdb1a3217/quantize/quantizer.py#L93) and [the enhanced MXFP4 quantizer](https://github.com/abdelfattah-lab/NVFP4-RaZeR/blob/5c6857a8fbbcd85e9adc47701e85992fdb1a3217/quantize/quantizer.py#L139). The following table shows the perplexity<d-footnote>Perplexity is a widely used metric to quantify the LLM performance, and <b>lower perplexity means better performance</b>.</d-footnote> of Wikitext-2 dataset on several Llama3 and Qwen3 models, under MXFP4 weight-activation quantization with a block size of 16. The round-up approach achieves much better perplexity compared to the naive round-to-nearest approach for power-of-two scale factor quantization. 
+The above analysis also indicates a hardware-efficient strategy for calculating the block scale of MXFP4: 
+```python
+if (B_max.man > 1.5):
+  block_exp = B_max.exp - 1 
+else: # (B_max.man <= 1.5)
+  block_exp = B_max.exp - 2
+
+block_scale = 2 ** block_exp
+```
+Assume the block element is represented in BF16-E8M7, then a SystemVerilog implementation can be:
+```verilog
+input  logic [15:0] B_max;
+output logic [8:0]  block_exp;
+output logic [15:0] block_scale;
+
+always_comb begin
+  if (B_max[6:5] > 2'b10) // Think why this is equivalent to (B_max.man > 1.5)
+      block_exp = B_max[14:7] - 1 
+  else
+      block_exp = B_max[14:7] - 2
+end
+
+assign block_scale = {1'b0, block_exp, 7'd0};
+```
+
+To measure the algorithmic performance of MX under the two rounding approaches for scale factor quantization, I implement [the naive MXFP4 quantizer](https://github.com/abdelfattah-lab/NVFP4-RaZeR/blob/5c6857a8fbbcd85e9adc47701e85992fdb1a3217/quantize/quantizer.py#L93) and [the enhanced MXFP4 quantizer](https://github.com/abdelfattah-lab/NVFP4-RaZeR/blob/5c6857a8fbbcd85e9adc47701e85992fdb1a3217/quantize/quantizer.py#L139). The following table shows the perplexity<d-footnote>Perplexity is a widely used metric to quantify the LLM performance, and <b>lower perplexity means better performance</b>.</d-footnote> of Wikitext-2 dataset on several Llama3 and Qwen3 models, under MXFP4 weight-activation quantization with a block size of 16. The round-up approach achieves much better perplexity compared to the naive round-to-nearest approach for power-of-two scale factor quantization. 
 <table style="width: 80%; border-spacing: 5px; margin-left: 1em; margin-top: -1em; margin-bottom: 1.5em;"><thead>
   <tr>
     <th>  </th>
@@ -450,7 +475,7 @@ To measure the algorithmic performance of MX quantization under the two scale fa
 
 
 <h3 style="margin-top: 1rem; margin-bottom: -0.25rem;">NVIDIA's (NV) Approach</h3>
-Recall from Section-III.1, if the scale factor is accurately represented (e.g., in FP32), then the maximum element can be accurately quantized without error. However, the 8-bit power-of-two scale factor used in MX violates this condition and introduces error for the block's maximum element<d-footnote>Again, the "maximum element" refers to the element with maximum magnitude.</d-footnote>. This raises the question: **Can we minimize the quantization error of block maximum while still using an 8-bit scale factor?** 
+Recall from Section-III.1, if the scale factor is accurately represented (e.g., in FP32), then the maximum element can be accurately quantized without error. However, the E8M0 scale factor used in MX violates this condition and introduces error for the block's maximum element<d-footnote>Again, the "maximum element" refers to the element with maximum magnitude.</d-footnote>. This raises the question: **Can we minimize the quantization error of block maximum while still using an 8-bit scale factor?** 
 
 Let's try to understand the limitations of MX when quantizing the block maximum, $$\mathrm{B}_{\text{max}}$$. Again, for simplicity, assume $$\mathrm{B}_{\text{max}}$$ is a positive normal FP32 value: 
 
@@ -461,7 +486,7 @@ $$
 Since the scale factor of MX is power-of-two, scaling $$\mathrm{B}_{\text{max}}$$ will only change its exponent without affecting mantissa:
 
 $$
-\mathrm{B_{\text{max},\,S}} \,= \frac{2^{\mathrm{E\,'}} \cdot \mathrm{M\,'}}{\mathrm{S_{MX}}} = \, 2^{\widetilde{\mathrm{E}}} \cdot \mathrm{M\,'}
+\mathrm{B_{\text{max},\,S}} \,= \frac{\mathrm{B}_{\text{max}}}{\mathrm{S_{MX}}} \,= \frac{2^{\mathrm{E\,'}} \cdot \mathrm{M\,'}}{\mathrm{S_{MX}}} = \, 2^{\widetilde{\mathrm{E}}} \cdot \mathrm{M\,'}
 $$
 
 Comparing the above result with the case of accurate FP32 scaling: 
@@ -471,9 +496,9 @@ $$
 \mathrm{B_{\text{max},\,S}} = \frac{ \mathrm{B}_{\text{max}}}{\mathrm{S}_{\text{FP32}}} = \mathrm{Q}_{\text{max}}
 $$
 
-We observe the accurate scaling gives $$\mathrm{B_{\text{max},\,S}} = \mathrm{Q}_{\text{max\,}}$$, which implies the mantissa of $$\mathrm{B_{\text{max},\,S}}$$ is equal to that of $$\mathrm{Q}_{\text{max}}$$ (e.g., $$1.5$$ for FP4). However, under MX scaling, the mantissa of $$\mathrm{B_{\text{max},\,S}}$$ is equal to that of $$\mathrm{B_{\text{max}}\,}$$, which can take any value in $$[\,1.0,\, 2.0\,)$$. Consequently, MX can be viewed as effectively quantizing the mantissa of $$\mathrm{B_{\text{max}}}$$ to the representable mantissas of $$\mathrm{Q}$$<d-footnote>For example, with the MXFP4 quantization described just now, B<sub>max</sub> can be mapped to 3, 4, or 6. These three quantization values have two mantissas 1.0 and 1.5, which are the representable mantissas of FP4.</d-footnote>, resulting in quantization error on $$\mathrm{B}_{\text{max}}$$. To reduce this error, one approach is to make the mantissa of $$\mathrm{B_{\text{max}}}$$ closer to that of $$\mathrm{Q}_{\text{max}}$$ through additional mantissa scaling, which requires the scale factor to also contain mantissa bits. For example, assume $$\mathrm{B}_{\text{max}}$$ has a mantissa $$\mathrm{M'} = 1.875$$. If the scale factor $$\mathrm{S}$$ can store 2-bit mantissa, then $$\mathrm{S} = 2^{\mathrm{E\,'-2}} \cdot 1.25$$ allows $$\mathrm{B_{\text{max}}}$$ to be accurately quantized to $$\mathrm{Q}_{\text{max}}$$. 
+We observe the accurate scaling gives $$\mathrm{B_{\text{max},\,S}} = \mathrm{Q}_{\text{max}\,}$$, which implies the mantissa of $$\mathrm{B_{\text{max},\,S}}$$ is equal to that of $$\mathrm{Q}_{\text{max}}$$ (e.g., $$1.5$$ for FP4). However, under MX scaling, the mantissa of $$\mathrm{B_{\text{max},\,S}}$$ is equal to that of $$\mathrm{B_{\text{max}}\,}$$, which can take any value in $$[\,1.0,\, 2.0\,)$$. Consequently, MX can be viewed as effectively quantizing the mantissa of $$\mathrm{B_{\text{max}}}$$ to the representable mantissa of $$\mathrm{Q}$$<d-footnote>For example, with the MXFP4 quantization described just now, B<sub>max</sub> can be quantized to 3, 4, or 6. These three quantization values have two mantissa, 1.0 and 1.5, which are the representable mantissas of FP4.</d-footnote>, resulting in quantization error on $$\mathrm{B}_{\text{max}}$$. To reduce this error, one approach is to make the mantissa of $$\mathrm{B_{\text{max}}}$$ closer to that of $$\mathrm{Q}_{\text{max}}$$ through additional mantissa scaling, which requires the scale factor to also contain mantissa bits<d-footnote>For example, assume B<sub>max</sub> = 2<sup>E'</sup> × M' has a mantissa M' = 1.875. Under MXFP4 quantization, S = 2<sup>E' - 1</sup> and B<sub>max, S</sub> = 3.75 will be rounded to 4, leading to an error of 0.25. But if S can store a 2-bit mantissa, then S = 2<sup>E' - 2</sup> × 1.25 and B<sub>max, S</sub> = 6 can be accurately quantized without error</d-footnote>.
 
-Building on this insight, NVIDIA (NV) proposes to employ FP8-E4M3--the 8-bit floating-point format with 4-bit exponent and 3-bit mantissa--for block scale quantization, as described in the following equations:  
+Building on this insight, NVIDIA (NV) proposes to employ FP8-E4M3, the 8-bit floating-point format with 4-bit exponent and 3-bit mantissa, for block scale quantization, as described in the following equations:  
 
 $$\begin{aligned}
 &\mathrm{S} = \frac{ |\mathrm{B}_{\text{max}}| }{ \mathrm{Q}_{\text{B,max}} } \\[0.3em] 
@@ -568,12 +593,13 @@ Based on the above analysis, the NV dequantizer differs from the MX dequantizer 
 
 
 <!-- ## <sub>III-3. Hierarchical Scaling for MXFP4</sub>
-As discussed in the previous section, NV's scale factor quantziation requires a tensor-wise scaling in addition to block-wise scaling. This multi-level scaling scheme is commonly referred to as **hierarchical scaling**. The fundamental reason behind NV's hierarchical scaling is that, the FP8-E4M3 block scale cannot fully cover the tensor's dynamic range<d-footnote>FP8-E4M3 has a dynamic range of [<sup> </sup>2<sup>-9</sup>, 448<sup> </sup>]. Multiplying this with the quantized block element, e.g., FP4, produces a dynamic range of [<sup> </sup>2<sup>-10</sup>, 2688<sup> </sup>]<d-footnote>. On the other hand, MX only requires a single-level block-wise scaling. MXFP4 and NVFP4 are two mainstream formats for 4-bit LLM quantization. However, NVFP4 is currently only supported by NVIDIA GPUs, whereas MXFP4 is standardized across the industry. This section presents two case studies from Meta and DeepSeek, demonstrating how MXFP4 can be enhanced to improve accuracy and efficiency. 
+As discussed in the previous section, NV quantization requires an FP32 tensor-wise scaling in addition to the FP8-E4M3 block-wise scaling. This multi-level scheme is commonly referred to as **hierarchical scaling**. The main reason behind NV's hierarchical scaling is that, the FP8-E4M3 block scale alone may not fully cover a tensor's dynamic range<d-footnote>For example, under NVFP4 quantization, the FP8-E4M3 scale has a dynamic range of [<sup> </sup>2<sup>-9</sup>, 448<sup> </sup>]. Multiplying this scale with the FP4 element yields a dynamic range of [<sup> </sup>2<sup>-10</sup>, 2688<sup> </sup>], which is insufficient to represent LLM tensors.</d-footnote>. On the other hand, MX quantization only requires a single-level block-wise scaling, due to the large dynamic range enabled by its E8M0 block scale<d-footnote>For example, under MXFP4 quantization, the E8M0 scale has a dynamic range of [<sup> </sup>2<sup>-126</sup>, 2<sup>125</sup><sup> </sup>]. Multiplying this scale with the FP4 element yields a dynamic range of [<sup> </sup>2<sup>-127</sup>, 1.5×2<sup>127</sup><sup> </sup>], which is very close to BF16's dynamic range [<sup> </sup>2<sup>-133</sup>, 1.9921875×2<sup>127</sup><sup> </sup>].</d-footnote>. This naturally raises the question: **Can hierarchical scaling also be applied to MX?** This section presents two case studies from Meta and DeepSeek, demonstrating how hierarchical scaling can be applied to MXFP4 to achieve better model accuracy and hardware efficiency. 
 
-<h3 style="margin-top: 1rem; margin-bottom: -0.25rem;">Meta's Approach to Enahnce </h3>
-As discussed in the previous section, MX and NV approaches to scale factor quantization involve different trade-offs between model accuracy and computation cost. While MX requires simpler hardware for dequantization, it leads to notably lower accuracy than NV. To improve MXFP4 quantization fidelity, Meta introduces two algorithmic techniques  -->
+<!-- MXFP4 and NVFP4 are two mainstream formats for 4-bit LLM quantization. However, NVFP4 is currently only supported by NVIDIA GPUs, whereas MXFP4 is standardized across the industry.  -->
+<h3 style="margin-top: 1rem; margin-bottom: -0.25rem;">Meta's MXFP4 Recipe</h3>
+At a first glance, hierarchical scaling seems kind of trivial to MXFP4 given that the E8M0 scale already covers the needed dynamic range. As discussed in the previous section, MX and NV approaches to scale factor quantization involve different trade-offs between model accuracy and computation cost. While MX requires simpler hardware for dequantization, it leads to notably lower accuracy than NV. To improve MXFP4 quantization fidelity, Meta introduces two algorithmic techniques 
 
-
+Although this question seems kind of trivial at a first glance given that the E8M0 scale already covers the required dynamic range. But reca -->
 
 
 ## Acknowledgment
