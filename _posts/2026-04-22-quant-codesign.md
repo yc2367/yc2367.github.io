@@ -393,7 +393,7 @@ $$\begin{aligned}
 
 Thus, to avoid overflow, the quantized scale factor should be larger than or equal to the original scale factor. 
 
-Interested readers may ask: **Why don't we use the normal rounding (up or down) mechanism when rounding the scale factor to its nearest power-of-two?** In fact, this is exactly what [the original MX quantizer from Microsoft](https://github.com/microsoft/microxcaling/blob/7bc41952de394f5cc5e782baf132e7c7542eb4e4/mx/mx_ops.py#L173) does. However, this naive approach can cause significant overflow of the scaled block, $$\mathrm{B_{S}\,}$$, leading to large saturation error<d-footnote>Hence, you should never refer to that original implementation for MX quantization.</d-footnote>. To better explain this problem, I will use the popular MXFP4 format as an example, where each block is quantized to FP4-E2M1 that can represent $$\{\,0\,, \pm\,0.5\,, \pm\,1\,, \pm\,1.5\,, \pm\,2\,, \pm\,3\,, \pm\,4\,, \pm\,6\,\}$$. Let's analyze what happens to the block maximum, $$\mathrm{B}_{\text{max}\,}$$, when the scale factor is rounded (up or down) to its nearest power-of-two. For simplicity, I will assume $$\mathrm{B}_{\text{max}}$$ is a positive normal FP32 value, leading to the following equations for computing the scaled block maximum, $$\mathrm{B_{\text{max},\,S}}$$: 
+Interested readers may ask: **Why don't we use the normal rounding (up or down) mechanism when rounding the scale factor to its nearest power-of-two?** In fact, this is exactly what [the original MX quantizer from Microsoft](https://github.com/microsoft/microxcaling/blob/7bc41952de394f5cc5e782baf132e7c7542eb4e4/mx/mx_ops.py#L173) does when the block maximum's mantissa exceeds the quantization maximum's mantissa. However, this naive approach may cause significant overflow of the scaled block $$\mathrm{B_{S}\,}$$, leading to large saturation error when the quantization format has limited mantissa precision<d-footnote>Hence, you should never refer to that original implementation for MX quantization.</d-footnote>. To better explain this problem, I will use the popular MXFP4 format as an example, where each block is quantized to FP4-E2M1 that can represent $$\{\,0\,, \pm\,0.5\,, \pm\,1\,, \pm\,1.5\,, \pm\,2\,, \pm\,3\,, \pm\,4\,, \pm\,6\,\}$$. Let's analyze what happens to the block maximum, $$\mathrm{B}_{\text{max}\,}$$, when the scale factor is rounded (up or down) to its nearest power-of-two. For simplicity, I will assume $$\mathrm{B}_{\text{max}}$$ is a positive normal FP32 value, leading to the following equations for computing the scaled block maximum, $$\mathrm{B_{\text{max},\,S}}$$: 
 
 $$
 \mathrm{S} = \frac{\mathrm{B}_{\text{max}}}{6} ; \ \  
@@ -412,7 +412,7 @@ $$
 \mathrm{S} = \frac{\mathrm{B}_{\text{max}}}{6} = \frac{ 2^{\,\mathrm{E\,'}} \cdot \mathrm{M\,'} }{ 2^2 \cdot 1.5 } =  2^{\,\mathrm{E\,'} - \,2} \cdot \frac{\mathrm{M\,'}}{1.5}
 $$
 
-Now, assume $$\mathrm{M\,'} > 1.5$$, which accounts for 50% of possible cases<d-footnote>Assume the mantissa is uniformly distributed between [1, 2), then we have 50% probability that the mantissa is larger than 1.5</d-footnote>, and since $$\mathrm{M\,'} < 2$$ by definition of floating-point, we have: 
+Now, if $$\mathrm{M\,'} > 1.5$$<d-footnote>Assume the block maximum's mantissa is uniformly distributed between [1, 2), then we have a high probability of 50% that it exceeds 1.5</d-footnote>, which means the block maximum's mantissa exceeds that of the FP4 maximum. In addition, since $$\mathrm{M\,'} < 2$$ by definition of the floating-point representation, we have: 
 
 $$\begin{aligned}
 & 2^{\,\mathrm{E\,'} - \,2} \cdot \frac{1.5}{1.5} \,<\, \mathrm{S} \,<\, 2^{\,\mathrm{E\,'} - \,2} \cdot \frac{2}{1.5} \\[0.3em]
@@ -424,7 +424,7 @@ $$\begin{aligned}
 \end{aligned}
 $$
 
-The above derivation implies that: If the mantissa of $$\mathrm{B}_{\text{max}}$$ is larger than 1.5, then $$\mathrm{B_{\text{max},\,S}}$$ will overflow outside the FP4 range<d-footnote>The above analysis can be generalized to other number representations under MX quantization: If the mantissa of B_max is larger than the mantissa of Q_max (e.g., 1.5 for FP4), then rounding (up or down) the scale factor to its nearest power-of-two will cause B<sub>max, S</sub> to overflow outside the representable quantization range.</d-footnote>. Consequently, the quantized block maximum, $$\mathrm{B_{\text{max},\,Q\,}}$$, is always mapped / clamped to the largest representable FP4 value, $$6$$, leading to saturation error. On the other hand, if we only round up the scale factor to its nearest power-of-two, we have: 
+The above derivation implies that: If the mantissa of $$\mathrm{B}_{\text{max}}$$ is larger than 1.5, then $$\mathrm{B_{\text{max},\,S}}$$ will overflow outside the FP4 range<d-footnote>The above analysis can be generalized to other number representations under MX quantization: If the mantissa of B<sub>max</sub> is larger than the mantissa of Q<sub>max</sub> (e.g., 1.5 for FP4), then rounding (up or down) the scale factor to its nearest power-of-two will cause B<sub>max, S</sub> to overflow outside the representable quantization range.</d-footnote>. Consequently, the quantized block maximum, $$\mathrm{B_{\text{max},\,Q\,}}$$, is always mapped / clamped to the largest representable FP4 value, $$6.0$$, leading to saturation error. On the other hand, if we only round up the scale factor to its nearest power-of-two, we have: 
 
 $$\begin{aligned}
 & 2^{\,\mathrm{E\,'} - \,2} \cdot \frac{1.5}{1.5} \,<\, \mathrm{S} \,<\, 2^{\,\mathrm{E\,'} - \,2} \cdot \frac{2}{1.5} \\[0.3em]
@@ -568,7 +568,7 @@ Consider the popular FP4 block-wise quantization under a block size of 16. Let's
   \end{aligned}$$
 
   Based on the above equations, the dequantized output should be: 
-  
+
   $$
   \mathrm{O_{D}} \,=\,  (-1)^{\,\mathrm{S}} \cdot\, 2^{\mathrm{E_{W}} + \mathrm{E_{A}}-254} \cdot \left(\,\underbrace{\Sigma_{j=0}^{11}\,2^{j-2} \cdot \mathrm{M}_{j}}_{\text{Un-norm Mantissa}} \,\right)
   $$
