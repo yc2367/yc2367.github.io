@@ -7,6 +7,7 @@ tags: Quantization CoDesign
 giscus_comments: true
 date: 2026-04-22
 featured: true
+bibliography: 2026-04-22-quant-codesign.bib
 
 authors:
   - name: Yuzong Chen
@@ -31,7 +32,7 @@ toc:
         #   - name: C. Floating-Point Addition
   - name: II. Quantization Basics
     subsections:
-      - name: II-1. Clssification of Quantization Methods
+      - name: II-1. Classification of Quantization Methods
       - name: II-2. Mathematical Background
       - name: II-3. Hardware Benefits of Quantized GEMM
   - name: III. Advanced Quantization Techniques
@@ -203,14 +204,14 @@ $$
 
 The sum's sign and mantissa are derived from the above un-normalizaed mantissa through a hardware normalization block, which does some post-processing to ensure the final mantissa is normalized to the range $$[1, 2)$$.
 
-Based on the above analysis, you may notice that it's not straightforward to derive a good upper bound for the floating-point adder's area complexity. There are also many low-level design considerations that vary across different hardware vendors when they design a floating-point adder. For example, how many bits should we reserve for accumulating the shifted mantissa $$1.\mathrm{M}_{2} \gg (\mathrm{E}_{1}-\mathrm{E}_{2})$$ after exponent alignment? At FP32-E8M23, the largest and smallest representable exponents are $$127$$ and $$-126$$, respectively. This means that the 24-bit input mantissa (including the hidden bit) can be right-shifted by up to $$253$$ bits, leading to a total precision of $$277$$ bits for accumulating two aligned mantissa, which is clearly not a practical choice. Thus, in reality, the shifted mantissa is always truncated and accumulated with much lower precision<d-footnote>For a given hardware platform, the exact precision of its mantissa accmulator can often be determined through reverse engineering.</d-footnote>. This introduces a trade-off between numerical accuracy and hardware cost: allocating less precision to accumulate the shifted mantissa reduces hardware cost but harms numerical accuracy<d-footnote>For instance, <a href="https://arxiv.org/abs/2412.19437">DeepSeek-V3</a> finds that on NVIDIA H800 GPUs, the accumulation precision of FP8 MAC is only 14 bits, which can introduce a maximum relative error of nearly 2% compared to using FP32 accumulation precision.</d-footnote>.
+Based on the above analysis, you may notice that it's not straightforward to derive a good upper bound for the floating-point adder's area complexity. There are also many low-level design considerations that vary across different hardware vendors when they design a floating-point adder. For example, how many bits should we reserve for accumulating the shifted mantissa $$1.\mathrm{M}_{2} \gg (\mathrm{E}_{1}-\mathrm{E}_{2})$$ after exponent alignment? At FP32-E8M23, the largest and smallest representable exponents are $$127$$ and $$-126$$, respectively. This means that the 24-bit input mantissa (including the hidden bit) can be right-shifted by up to $$253$$ bits, leading to a total precision of $$277$$ bits for accumulating two aligned mantissa, which is clearly not a practical choice. Thus, in reality, the shifted mantissa is always truncated and accumulated with much lower precision<d-footnote>For a given hardware platform, the exact precision of its mantissa accumulator can often be determined through reverse engineering.</d-footnote>. This introduces a trade-off between numerical accuracy and hardware cost: allocating less precision to accumulate the shifted mantissa reduces hardware cost but harms numerical accuracy<d-footnote>For instance, <a href="https://arxiv.org/abs/2412.19437">DeepSeek-V3</a> finds that on NVIDIA H800 GPUs, the accumulation precision of FP8 MAC is only 14 bits, which can introduce a maximum relative error of nearly 2% compared to using FP32 accumulation precision.</d-footnote>.
 
 
 
 ## II. Quantization Basics
 Let's now jump into quantization: one of the most popular methods to improve the hardware efficiency of LLMs. 
 
-## <sub>II-1. Clssification of Quantization Methods</sub>
+## <sub>II-1. Classification of Quantization Methods</sub>
 Before diving into technical details, I would like to classify existing quantization methods into two broad categories: **compute-based** and **memory-based**, depending on how they interpret the low-precision operands in hardware<d-footnote>This is only one of many ways to classify quantization methods. For instance, one could also classify different methods based on their target quantized operands, e.g., weight-only quantization and weight-activation quantization, as described in <a href="https://arxiv.org/abs/2511.06838">this paper</a>.</d-footnote>. Below is a visualization:
 <div style="text-align:center;">
   <img src="/assets/img/blog/quant_codesign/Memory_vs_Compute_Quantization.png" width="60%" />
@@ -358,9 +359,9 @@ One thing I didn't explain in the above figure, which you might find a little we
 The memory costs of different quantization granularity are much simpler to analyze. In addition to weight, input, and output, quantization stores extra metadata such as the scale factors. For tensor-wise and row-wise quantization, the memory cost of scale factors is pretty negligible when the dot product size is large enough, which is the case for modern LLMs. However, this assumption may not hold for block-wise quantization. For example, with a block size of $$128$$, an FP32 scale factor introduces an overhead of $$32/128 = 0.25$$ bits per element. As the block size further decreases (to improve model performance), the storage overhead of scale factors can no longer be ignored. Thus, for the next quantization technique, I will discuss how to reduce the overhead of scale factors. 
 
 ## <sub>III-2. Scale Factor Quantization</sub>
-While block-wise quantization brings algorithmic benefits by reducing quantization error, it incurs additional hardware cost from storing numerous FP32 scale factors and performing more FP32 multiplications / additions during dequantization. This overhead restricts the use of very samll block sizes, which are often critical for achieving high accuracy under 4-bit quantization.
+While block-wise quantization brings algorithmic benefits by reducing quantization error, it incurs additional hardware cost from storing numerous FP32 scale factors and performing more FP32 multiplications / additions during dequantization. This overhead restricts the use of very small block sizes, which are often critical for achieving high accuracy under 4-bit quantization.
 
-The question is: **How can we reduce the cost of scale factors? The answer is surprisingly  straightforward: if quantization can reduce the memory and computation costs of tensor elements, why not apply it to scale factors?** Building on this idea, the industry has proposed two methods to quantize the block scale factor: [Microscaling (MX)](https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf) and [NVIDIA’s (NV)](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/) approach. Both quantize the scale factor to 8 bits, but using different number representations<d-footnote>Besides the scale factor representation, the official MX and NV quantization recipe also set fixed block sizes of 32 and 16, respectively. However, the concept of block size is not strictly tied to these two approaches. For instance, one can choose to reduce the MX block size from 32 to 16, as did in <a href="https://arxiv.org/abs/2603.08713">this paper from Meta</a>. Therefore, I will focus on discussing the scale factor representation without caring too much about the block size.</d-footnote>: MX uses the 8-bit power-of-two format (E8M0), whereas NV uses the 8-bit floating-point format with 4-bit exponent and 3-bit mantissa (FP8-E4M3). Below is a visualization of how MX and NV represent scale factors, assuming the block elements are quantized to FP4 (i.e., the popular MXFP4 and NVFP4 formats): 
+The question is: **How can we reduce the cost of scale factors? The answer is surprisingly  straightforward: if quantization can reduce the memory and computation costs of tensor elements, why not apply it to scale factors?** Building on this idea, the industry has proposed two methods to quantize the block scale: Microscaling (MX)<d-cite key="mx"></d-cite> and NVIDIA’s (NV)<d-cite key="nvfp4"></d-cite> approach. Both quantize the scale factor to 8 bits, but using different number representations<d-footnote>Besides the scale factor representation, the official MX and NV quantization recipe also set fixed block sizes of 32 and 16, respectively. However, the concept of block size is not strictly tied to these two approaches. For instance, one can choose to reduce the MX block size from 32 to 16, as did in <a href="https://arxiv.org/abs/2603.08713">this paper from Meta</a>. Therefore, I will focus on discussing the scale factor representation without caring too much about the block size.</d-footnote>: MX uses the 8-bit power-of-two format (E8M0), whereas NV uses the 8-bit floating-point format with 4-bit exponent and 3-bit mantissa (FP8-E4M3). Below is a visualization of how MX and NV represent scale factors, assuming the block elements are quantized to FP4 (i.e., the popular MXFP4 and NVFP4 formats): 
 
 <div style="text-align:center;">
   <img src="/assets/img/blog/quant_codesign/MXFP4_NVFP4_Overview.png" width="75%" />
@@ -372,10 +373,10 @@ MX is standardized by the Open Compute Project, and widely supported by recent A
 
 $$
 \mathrm{S} = \frac{ |\mathrm{B}|_{\text{max}} }{ \mathrm{Q}_{\text{max}} } ; \ \ 
-\boldsymbol{\mathrm{S_{Q}}} = 2^{\left\lceil\,\texttt{log2}\left( \,\mathrm{S} \,\right) \,\right\rceil} ; \ \ 
-\mathrm{B_\mathrm{S}} = \frac{\mathrm{B}}{\boldsymbol{\mathrm{S_{Q}}}} ; \ \
-\mathrm{B_Q} = \texttt{Round}\left(\,\mathrm{B_\mathrm{S}}\,,\, \mathrm{Q}\,\right) ; \ \
-\mathrm{B_\mathrm{D}} = \mathrm{B_Q} \cdot \boldsymbol{\mathrm{S_{Q}}}
+\mathrm{S_{Q}} = 2^{\left\lceil\,\texttt{log2}\left( \,\mathrm{S} \,\right) \,\right\rceil} ; \ \ 
+\mathrm{B_S} = \frac{\mathrm{B}}{\mathrm{S_{Q}}} ; \ \
+\mathrm{B_Q} = \texttt{Round}\left(\,\mathrm{B_S}\,,\, \mathrm{Q}\,\right) ; \ \
+\mathrm{B_D} = \mathrm{B_Q} \cdot \mathrm{S_{Q}}
 $$
 
 where $$\mathrm{B}$$ is the block to be quantized. After calculating the scale factor $$\mathrm{S}$$, we take its binary logarithm followed by a ceiling operation to obtain the integer exponent<d-footnote>When implementing this step in code, there is no need to explicitly compute the logarithm, which is very costly on hardware. Instead, this whole step can be efficiently implemented at the binary level using simple bitwise operations, as described in <a href="https://huggingface.co/deepseek-ai/DeepSeek-V3.2/blob/main/inference/kernel.py#L20">this code snippet</a> from DeepSeek.</d-footnote>. The quantized scale factor is the base-2 exponentiation of this integer exponent. The ceiling operation ensures that $$\mathrm{S}$$ is always *rounded up* to the nearest power-of-two that is larger than or equal to $$\mathrm{S}$$. This is different from the rounding mechanism for the scaled block element $$\mathrm{B_{S}\,}$$, which is *rounded (up or down)* to the nearest quantization value.
@@ -453,7 +454,7 @@ output logic [8:0]  block_exp;
 output logic [15:0] block_scale;
 
 always_comb begin
-  if (B_max[6:5] > 2'b10) // Think why this is equivalent to (B_max.man > 1.5)
+  if (B_max[6:0] > 7'b1000000) // Think why this is equivalent to (B_max.man > 1.5)
       block_exp = B_max[14:7] - 1 
   else
       block_exp = B_max[14:7] - 2
@@ -462,7 +463,7 @@ end
 assign block_scale = {1'b0, block_exp, 7'd0};
 ```
 
-To measure the algorithmic performance of MX under the two rounding approaches for scale factor quantization, I implement [the naive MXFP4 quantizer](https://github.com/abdelfattah-lab/NVFP4-RaZeR/blob/5c6857a8fbbcd85e9adc47701e85992fdb1a3217/quantize/quantizer.py#L93) and [the enhanced MXFP4 quantizer](https://github.com/abdelfattah-lab/NVFP4-RaZeR/blob/5c6857a8fbbcd85e9adc47701e85992fdb1a3217/quantize/quantizer.py#L139). The following table shows the perplexity<d-footnote>Perplexity is a widely used metric to quantify the LLM performance, and <b>lower perplexity means better performance</b>.</d-footnote> of Wikitext-2 dataset on several Llama3 and Qwen3 models, under MXFP4 weight-activation quantization with a block size of 16. The round-up approach achieves much better perplexity compared to the naive round-to-nearest approach for power-of-two scale factor quantization. 
+To measure the algorithmic performance of MX under the two rounding approaches for scale factor quantization, I implement [the naive MXFP4 quantizer](https://github.com/abdelfattah-lab/NVFP4-RaZeR/blob/82ecc9a0a3ec9f7e228629db6135e67a7e07e665/quantize/quantizer.py#L93) and [the enhanced MXFP4 quantizer](https://github.com/abdelfattah-lab/NVFP4-RaZeR/blob/82ecc9a0a3ec9f7e228629db6135e67a7e07e665/quantize/quantizer.py#L138). The following table shows the perplexity<d-footnote>Perplexity is a widely used metric to quantify the LLM performance, and <b>lower perplexity means better performance</b>.</d-footnote> of Wikitext-2 dataset on several Llama3 and Qwen3 models, under MXFP4 weight-activation quantization with a block size of 16. The round-up approach achieves much better perplexity compared to the naive round-to-nearest approach for power-of-two scale factor quantization. 
 <table style="width: 80%; border-spacing: 5px; margin-left: 1em; margin-top: -1em; margin-bottom: 1.5em;"><thead>
   <tr>
     <th>  </th>
@@ -511,13 +512,13 @@ $$\begin{aligned}
 &\mathrm{S} = \frac{ |\mathrm{B}_{\text{max}}| }{ \mathrm{Q}_{\text{B,max}} } \\[0.3em] 
 &\mathrm{S'} = \frac{ \mathrm{S}_{\text{max}} }{ \mathrm{Q}_{\text{S,max}} } 
 = \left(\frac{ |\mathrm{B}_{\text{max}}| }{ \mathrm{Q}_{\text{B,max}}}\right)_{\text{max}} \cdot \frac{1}{\mathrm{Q}_{\text{S,max}} } = \frac{|\mathrm{B}_{\text{max}}|_{\text{max}}}{\mathrm{Q}_{\text{B,max}}} \cdot \frac{1}{\mathrm{Q}_{\text{S,max}}} = \frac{|\mathrm{T}_{\text{max}}|}{\mathrm{Q}_{\text{B,max}} \cdot\mathrm{Q}_{\text{S,max}}}  \\[0.3em] 
-&\mathrm{S_\mathrm{S}} = \frac{\mathrm{S}}{\mathrm{S'}} \\[0.3em] 
-&\mathrm{S_Q} = \texttt{Round}\left(\,\mathrm{S_\mathrm{S}}\,,\, \text{FP8}\,\right) \\[0.3em] 
+&\mathrm{S_S} = \frac{\mathrm{S}}{\mathrm{S'}} \\[0.3em] 
+&\mathrm{S_Q} = \texttt{Round}\left(\,\mathrm{S_S}\,,\, \text{FP8}\,\right) \\[0.3em] 
 &\mathrm{S_\mathrm{D}} = \mathrm{S_Q} \cdot \mathrm{S'}
 \end{aligned}
 $$
 
-where $$\mathrm{Q}_{\text{B,max}}$$ is the maximum quantization value for the block element, $$\mathrm{Q}_{\text{S,max}}$$ is the maximum quantization value for the block scale (i.e., $$448$$ for FP8), $$\mathrm{S}'$$ is the scale of block scale, $$\mathrm{T}_{\text{max}}$$ is the tensor maximum,  $$\mathrm{S_{S}}$$ is the scaled block scale, $$\mathrm{S_{Q}}$$ is the quantized block scale, and $$\mathrm{S_{D}}$$ is the final dquantized block scale. This block scale quantization process is exactly the same as how we quantize a tensor as discussed in [Section II-2](#ii-2-mathematical-background). The mathematical equations are therefore also the same as those for tensor quantization, except that we change $$\mathrm{X}$$ to $$\mathrm{S}$$, $$\mathrm{S}$$ to $$\mathrm{S'}$$, and $$\mathrm{Q}$$ to FP8. Below is a visualization to help you understand the FP8 block scale quantization using the popular NVFP4 format (i.e., $$\mathrm{Q}_{\text{B,max}}$$ = 6) as an example. 
+where $$\mathrm{Q}_{\text{B,max}}$$ is the maximum quantization value for the block element, $$\mathrm{Q}_{\text{S,max}}$$ is the maximum quantization value for the block scale (i.e., $$448$$ for FP8), $$\mathrm{S}'$$ is the scale of block scale, $$\mathrm{T}_{\text{max}}$$ is the tensor maximum,  $$\mathrm{S_{S}}$$ is the scaled block scale, $$\mathrm{S_{Q}}$$ is the quantized block scale, and $$\mathrm{S_{D}}$$ is the final dequantized block scale. This block scale quantization process is exactly the same as how we quantize a tensor as discussed in [Section II-2](#ii-2-mathematical-background). The mathematical equations are therefore also the same as those for tensor quantization, except that we change $$\mathrm{X}$$ to $$\mathrm{S}$$, $$\mathrm{S}$$ to $$\mathrm{S'}$$, and $$\mathrm{Q}$$ to FP8. Below is a visualization to help you understand the FP8 block scale quantization using the popular NVFP4 format (i.e., $$\mathrm{Q}_{\text{B,max}}$$ = 6) as an example. 
 
 <div style="text-align:center;">
   <img src="/assets/img/blog/quant_codesign/NVFP4_Scale_Quant.png" width="100%" />
@@ -528,7 +529,7 @@ The above equation for calculating $$\mathrm{S'}$$ indicates a **tensor-wise sca
 
 You may also wonder: **Why choosing E4M3 instead of other FP8 variants such as E5M2 / E3M4 when quantizing the block scale?** The reason is that, empirically, E4M3 can better fit the numerical distribution of block maxima<d-footnote>According to our discussion in [Section II-2](#ii-2-mathematical-background), quantizing block scales is equivalent to quantizing block maxima, since the latter differs from the former only by a constant factor (i.e., $$Q_<sub>B,max </sub>$$).</d-footnote> in LLM weight and activation tensors, resulting in lower quantization error than other FP8 variants. This brings another important topic, *Quantization Format for Tensor Elements*, which I will cover soon.
 
-Thanks to the capability of mantissa scaling, NV reduces the quantization error of scale factors compared to MX, which in turn reduces the quantization error of block elements. To quantify these benefits, I implement [the NVFP4 quantizer](https://github.com/abdelfattah-lab/NVFP4-RaZeR/blob/5c6857a8fbbcd85e9adc47701e85992fdb1a3217/quantize/quantizer.py#L375) and compare it with [the enhanced MXFP4 quantizer](https://github.com/abdelfattah-lab/NVFP4-RaZeR/blob/5c6857a8fbbcd85e9adc47701e85992fdb1a3217/quantize/quantizer.py#L139) discussed in the last section. The following table shows the perplexity of Wikitext-2 dataset on several Llama3 and Qwen3 models, under NVFP4 and MXFP4 weight-activation quantization with a block size of 16. NVFP4 achieves much better perplexity than MXFP4. 
+Thanks to the capability of mantissa scaling, NV reduces the quantization error of scale factors compared to MX, which in turn reduces the quantization error of block elements. To quantify these benefits, I implement [the NVFP4 quantizer](https://github.com/abdelfattah-lab/NVFP4-RaZeR/blob/82ecc9a0a3ec9f7e228629db6135e67a7e07e665/quantize/quantizer.py#L424) and compare it with [the enhanced MXFP4 quantizer](https://github.com/abdelfattah-lab/NVFP4-RaZeR/blob/82ecc9a0a3ec9f7e228629db6135e67a7e07e665/quantize/quantizer.py#L138) discussed in the last section. The following table shows the perplexity of Wikitext-2 dataset on several Llama3 and Qwen3 models, under NVFP4 and MXFP4 weight-activation quantization with a block size of 16. NVFP4 achieves much better perplexity than MXFP4. 
 
 <table style="width: 80%; border-spacing: 5px; margin-left: 1em; margin-top: -1em; margin-bottom: 1.5em;"><thead>
   <tr>
@@ -567,6 +568,7 @@ Consider the popular FP4 block-wise quantization under a block size of 16. Let's
   \end{aligned}$$
 
   Based on the above equations, the dequantized output should be: 
+  
   $$
   \mathrm{O_{D}} \,=\,  (-1)^{\,\mathrm{S}} \cdot\, 2^{\mathrm{E_{W}} + \mathrm{E_{A}}-254} \cdot \left(\,\underbrace{\Sigma_{j=0}^{11}\,2^{j-2} \cdot \mathrm{M}_{j}}_{\text{Un-norm Mantissa}} \,\right)
   $$
@@ -603,10 +605,10 @@ Based on the above analysis, the NV dequantizer differs from the MX dequantizer 
 As discussed in the previous section, NV quantization requires an FP32 tensor scale in addition to the FP8-E4M3 block scale. This multi-level scheme is commonly referred to as **hierarchical scaling**. The main reason behind NV's hierarchical scaling is that, the FP8-E4M3 block scale alone may not fully cover a tensor's dynamic range<d-footnote>For example, under NVFP4 quantization, the FP8-E4M3 scale has a dynamic range of [<sup> </sup>2<sup>-9</sup>, 448<sup> </sup>]. Multiplying this scale with the FP4 element yields a dynamic range of [<sup> </sup>2<sup>-10</sup>, 2688<sup> </sup>], which is insufficient to represent LLM tensors.</d-footnote>. On the other hand, MX quantization only requires a single-level block-wise scaling, due to the large dynamic range enabled by its E8M0 block scale<d-footnote>For example, under MXFP4 quantization, the E8M0 scale has a dynamic range of [<sup> </sup>2<sup>-126</sup>, 2<sup>125</sup><sup> </sup>]. Multiplying this scale with the FP4 element yields a dynamic range of [<sup> </sup>2<sup>-127</sup>, 1.5×2<sup>127</sup><sup> </sup>], which is very close to BF16's dynamic range [<sup> </sup>2<sup>-133</sup>, 1.9921875×2<sup>127</sup><sup> </sup>].</d-footnote>. This difference naturally raises the question: **Can MX also employ hierarchical scaling?** This section presents two case studies from Meta and DeepSeek, demonstrating how hierarchical scaling can enhance MXFP4 to achieve better model accuracy and hardware efficiency. 
 
 <!-- MXFP4 and NVFP4 are two mainstream formats for 4-bit LLM quantization. However, NVFP4 is currently only supported by NVIDIA GPUs, whereas MXFP4 is standardized across the industry.  -->
-<h3 style="margin-top: 1rem; margin-bottom: -0.25rem;">Meta's MXFP4 Quantization Recipe</h3>
+<h3 style="margin-top: 1rem; margin-bottom: -0.25rem;">Meta's MXFP4 Recipe</h3>
 At first glance, hierarchical scaling may seem unnecessary for MXFP4, since the E8M0 block scale already covers the tensor's full dynamic range. However, as discussed in [Section III-2](#iii-2-scale-factor-quantization), one way to reduce the MX quantization error is to bring the mantissa of block maximum closer to that of quantization maximum through additional mantissa scaling, which requires the scale factor to contain mantissa bits. However, directly adding mantissa bits to the E8M0 block scale introduces significant memory and computation overhead during dequantization.
 
-To enable mantissa scaling for MX without sacrificing hardware efficiency, Meta proposes a two-level [Macro Block Scaling](https://arxiv.org/abs/2603.08713) (MBS) scheme. First, a macro-block (MB) of size $$1 \times 128$$ is scaled using an 8-bit mantissa (E0M8), aligning the mantissa of its maximum value close to $$1.5$$ (i.e., the mantissa of FP4 maximum). The macro-block is then partitioned into eight local-blocks (LB) of size $$1 \times 16$$, each applied MX scaling with an E8M0 block scale. This procedure is visualized below: 
+To enable mantissa scaling for MX without sacrificing hardware efficiency, Meta proposes a two-level Macro Block Scaling (MBS) scheme<d-cite key="meta_mxfp4"></d-cite>. First, a macro-block (MB) of size $$1 \times 128$$ is scaled using an 8-bit mantissa (E0M8), aligning the mantissa of its maximum value close to $$1.5$$ (i.e., the mantissa of FP4 maximum). The macro-block is then partitioned into eight local-blocks (LB) of size $$1 \times 16$$, each applied MX scaling with an E8M0 block scale. This procedure is visualized below: 
 <div style="text-align:center;">
   <img src="/assets/img/blog/quant_codesign/Meta_MXFP4_Software.png" width="75%" />
   <figcaption style="font-size: 0.95em; margin-top: 8px;"></figcaption>
@@ -642,9 +644,28 @@ $$\begin{aligned}
 \end{aligned}
 $$
 
-The above analysis assumes that retaining the top 8 mantissa bits is sufficient to preserve the whole mantissa, which is generally true. Empirically, Meta finds that the top 8 mantissa bits can approximate the original FP32 mantissa with $$<0.3\%$$ error. After performing MBS, the scaled maximum $$\mathrm{B_{M,\,S}}$$ has a mantissa of $$1.5$$, which can be accrately quantized to 6.0 during the MXFP4 quantization of local-blocks. 
+The above analysis assumes that retaining the top 8 mantissa bits is sufficient to preserve the whole mantissa, which is generally true. Empirically, Meta finds that the top 8 mantissa bits can approximate the original FP32 mantissa with $$<0.3\%$$ error. After performing MBS, the scaled maximum $$\mathrm{B_{M,\,S}}$$ has a mantissa of $$1.5$$, which can be accurately quantized to 6.0 during the MXFP4 quantization of local-blocks. 
 
-The benefits of MBS is two fold. First, it enables more accurate quantization of the macro-block maximum, thereby preserving the numerical afidelity of many high-magnitude outliers. Second, the $$1 \times 128$$ macro-block size significantly reduces the memory and dequantization cost compared to allocating extra mantissa bits to the local-block scale. 
+The benefits of MBS is two fold. First, it enables more accurate quantization of the macro-block maximum, thereby preserving the numerical fidelity of many high-magnitude outliers. Second, the $$1 \times 128$$ macro-block size significantly reduces the memory<d-footnote>Each macro-block of 128 elements store an 8-bit E0M8 scale, while each local-block of 16 elements store an 8-bit E8M0 scale. Under FP4 quantization, this gives an effective memory cost of (4 + 8/16 + 8/128) = 4.5625 bits per element. In practice, the memory cost can be further reduced by packing the 8-bit macro-block scale can even be packed within the local-block scales, since even an E7M0 local-block scale is sufficient to cover the tensor's dynamic range.</d-footnote> and dequantization cost compared to allocating extra mantissa bits to the local-block scale. 
+
+To quantify the algorithmic benefits of MBS, I implement [Meta's MXFP4 quantizer](https://github.com/abdelfattah-lab/NVFP4-RaZeR/blob/82ecc9a0a3ec9f7e228629db6135e67a7e07e665/quantize/quantizer.py#L175)<d-footnote>In addition to MBS, Meta's MXFP4 also proposes a technique called Overflow-Aware Scaling (OBS), which I don't cover in this blog but is implement in the quantizer.</d-footnote> and compare it with [the baseline MXFP4 quantizer](https://github.com/abdelfattah-lab/NVFP4-RaZeR/blob/82ecc9a0a3ec9f7e228629db6135e67a7e07e665/quantize/quantizer.py#L138) discussed in [Section III-2](#iii-2-scale-factor-quantization). The following table shows the perplexity of Wikitext-2 dataset on several Llama3 and Qwen3 models, under MXFP4 weight-activation quantization with a block size of 16. Meta's recipe achieves much better perplexity compared to the baseline MXFP4 quantization. 
+<table style="width: 90%; border-spacing: 5px; margin-left: 1em; margin-top: -1em; margin-bottom: 1.5em;"><thead>
+  <tr>
+    <th>  </th>
+    <th> <br>Llama-3.1-8B </th>
+    <th> <br>Llama-3.2-3B </th>
+    <th> <br>Qwen3-4B </th>
+    <th> <br>Qwen3-8B </th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td> Baseline MXFP4 </td><td> 8.69 </td><td> 13.58 </td><td> 15.69 </td><td> 10.66 </td>
+  </tr>
+  <tr>
+    <td> Meta's MXFP4 </td><td> 8.14 </td><td> 12.82 </td><td> 14.52 </td><td> 10.42 </td>
+  </tr>
+</tbody></table>
+
 
 **Hardware Implication of MBS**:  While Meta claims that MBS does not require any change to the GEMM hardware (tensor core), it still necessitates a careful architecture co-design to balance the throughput between tensor core and vector core. Below is a visualization of the GEMM computation flow using MBS:
 <div style="text-align:center;">
@@ -654,8 +675,81 @@ The benefits of MBS is two fold. First, it enables more accurate quantization of
 Within a macro-block, the eight local-blocks are all quantized to MXFP4. Therefore, the macro-block dot product, comprising 128 MAC operations, can be accelerated using the dedicated MXFP4 tensor core. However, the macro-block output must be dequantized by multiplying it with two E0M8 scales, followed by accumulation across different macro-blocks. This process is realized on the FP32 vector core and involves 2 MAC operations<d-footnote>Technically, the macro-block dequantization involves 1 multiplication between the two E0M8 scales and 1 MAC with the macro-block output. However, most AI hardware performs fused MAC operations in a single cycle; if only a multiplication or addition is issued, the other part of the MAC unit becomes idle.</d-footnote>. In order to fully utilize the MXFP4 tensor core for GEMM, the vector core throughput should exceed $$1/64$$ of the tensor core throughput<d-footnote>This requirement may not be met on some existing GPUs. For example, on <a href="https://www.nvidia.com/en-us/data-center/gb300-nvl72/?ncid=no-ncid">NVIDIA GB300 NVL72</a>, the FP32 vector core throughput is only 1/180 of the FP4 tensor core throughput.</d-footnote>.
 
 
+<h3 style="margin-top: 1rem; margin-bottom: -0.25rem;">DeepSeek's MXFP4 Recipe</h3>
+The recent DeepSeek-V4<d-cite key="deepseek_v4"></d-cite> adopts mixed-precision quantization for the mixture-of-expert layers, where weights and activations are quantized to MXFP4 and MXFP8<d-footnote>The mixed-precision configuration using 4-bit weights and 8-bit activations is commonly referred to as <b>W4A8</b> quantization.</d-footnote>, respectively, with block sizes of 32 and 128. However, mainstream AI hardware typically requires both GEMM inputs to use the same numerical precision, forcing the lower-precision operand (FP4 weights in this case) to be first upcast to the higher precision (FP8 in this case) before GEMM can be performed. Consider an example GEMM tile size of $$128 \times 128 \times 1$$, which is the default tile size used in DeepSeek-V3. The naive mixed-precision GEMM flow is visualized below:
+<div style="text-align:center;">
+  <img src="/assets/img/blog/quant_codesign/DeepSeek_MXFP4_Hardware_1.png" width="90%" />
+  <figcaption style="font-size: 0.95em; margin-top: 8px;"></figcaption>
+</div>  
+Since each $$1 \times 32$$ weight block has its own E8M0 scale, the tensor core can only perform a 32-way FP8 dot product, after which the output must be dequantized on the vector core<d-footnote>In recent AI hardware such as NVIDIA Blackwell and AMD Instinct GPUs, the MX tensor core natively supports E8M0 dequantization with a block size of 32. Thus, I believe this straightforward GEMM flow can work efficiently on the latest GPUs.</d-footnote>. However, as highlighted in DeepSeek-V4's technical report, performing a full 128-way dot-product (without intermediate dequantization) on the FP8 tensor core allows to reuse DeepSeek-V3's existing FP8 training framework without modification<d-footnote>Therefore, the hierarchical MXFP4 scaling in DeepSeek-V4, which will be described next, is primarily an engineering design choice. But it's still a very smart technique.</d-footnote>. 
+
+To enable a complete $$128 \times 128 \times 1$$ FP8 GEMM between weights and activations, all dequantized weight blocks within a $$128 \times 128$$ tile should be representable in FP8, which leads to a tile-wise MX scaling as described in the following equations: 
+
+<!-- $$\begin{aligned}
+&\mathrm{S}_\text{T} = \frac{ |\mathrm{T}|_{\text{max}} }{ 384 } \quad\quad\quad\;\;\; \text{(Why not divided by 448 ?)} \\[0.3em]
+&\mathrm{S_{T,\,Q}} = 2^{\left\lceil\,\texttt{log2}\left( \,\mathrm{S}_\text{T} \,\right) \,\right\rceil} \quad\; \text{(Quantized E8M0 Tile Scale)} \\[0.3em]   
+&\mathrm{T_S} = \frac{\mathrm{T}}{\mathrm{S_{T,\,Q}}} \quad\quad\quad\quad\;\, \text{(Tile-wise Scaling)} \\[0.3em]
+&\text{for every } \mathrm{B} \text{ in } \mathrm{T_S}\,: \\[0.3em]
+&\quad\;\; \mathrm{S}_\text{B} = \frac{ |\mathrm{B}|_{\text{max}} }{ 6 } \\[0.3em]  
+&\quad\;\; \mathrm{S_{B,\,Q}} = 2^{\texttt{Clamp}\left(\,\left\lceil\,\texttt{log2}\left( \,\mathrm{S}_\text{B} \,\right) \,\right\rceil ,\, \text{min = -6},\, \text{max = 6} \,\right)} \quad \text{(Constrain block scale to E4M0)} \\[0.3em] 
+&\quad\;\; \mathrm{B_Q} = \texttt{Round}\left(\,\frac{\mathrm{B}}{\mathrm{S_{B,\,Q}}}\,,\, \text{FP4}\,\right)  \quad\; \text{(Quantized FP4 Block)} \\[0.3em] 
+&\quad\;\; \mathrm{B_D} = \mathrm{B_Q} \cdot \mathrm{S_{B,\,Q}} \quad\; \text{(Dequantized FP8 Block)} \\[0.3em] 
+&\mathrm{T_D} = \mathrm{B_D} \cdot \mathrm{S_{T,\,Q}} \quad\; \text{(Dequantized Tile)} 
+\end{aligned}
+$$ -->
+
+<!-- $$\begin{aligned}
+&\text{For every } \mathrm{B} \text{ in } \mathrm{T}: \\[0.3em]
+&\quad\;\; \mathrm{S}_\text{B} = \frac{ |\mathrm{B}|_{\text{max}} }{ 6 } \\[0.3em]  
+&\quad\;\; \mathrm{S_{B,\,Q}} = 2^{\left\lceil\,\texttt{log2}\left( \,\mathrm{S}_\text{B} \,\right) \,\right\rceil} \quad\quad \text{(Original E8M0 block scale for MXFP4)} \\[0.3em] 
+&\mathrm{S}_\text{T} =  \frac{\texttt{max}\left(\,\mathrm{S_{B,\,Q}}\,\right)}{64} \quad\quad \text{(Store: E8M0 Tile Scale)} \\[0.3em]
+&\mathrm{T_S} = \frac{\mathrm{T}}{\mathrm{S_{T}}} \quad\quad\quad\quad\quad\;\;\; \text{(Tile-wise Scaling)} \\[0.3em]
+&\text{For every } \mathrm{B} \text{ in } \mathrm{T_S}: \\[0.3em]
+&\quad\;\; \mathrm{S_{B}} = \frac{ |\mathrm{B}|_{\text{max}} }{ 6 } \\[0.3em]  
+&\quad\;\; \mathrm{S_{B,\,Q}} = 2^{\left\lceil\,\texttt{log2}\left( \,\mathrm{S_{B}} \,\right) \,\right\rceil} \quad\quad\quad\quad\quad\quad \text{(Store: E4M0 Block scale)} \\[0.3em] 
+&\quad\;\; \mathrm{B_{Q}} = \texttt{Round}\left(\,\frac{\mathrm{B}}{\mathrm{S_{B,\,Q}}}\,,\, \text{FP4}\,\right)  \quad\;\;\, \text{(Store: Quantized FP4 Block)} \\[0.3em] 
+&\quad\;\; \mathrm{B_D} = \mathrm{B_Q} \cdot \mathrm{S_{B,\,Q}} \quad\quad\quad\quad\quad\quad\quad\; \text{(Dequantized FP8 block for GEMM)} \\[0.3em] 
+&\mathrm{T_D} = \mathrm{B_D} \cdot \mathrm{S_{T}} \quad\quad \text{(Dequantized Tile)} 
+\end{aligned}
+$$ -->
+
+$$\begin{aligned}
+&\text{For every } \mathrm{B} \text{ in } \mathrm{T}: \\[0.3em]
+&\quad\;\; \mathrm{S}_\text{B} = \frac{ |\mathrm{B}|_{\text{max}} }{ 6 } ; \ \ 
+\mathrm{S_{Q}} = 2^{\left\lceil\,\texttt{log2}\left( \,\mathrm{S}_\text{B} \,\right) \,\right\rceil}  ; \ \ 
+\mathrm{B_{S}} = \frac{\mathrm{B}}{\mathrm{S_{Q}}} \quad\quad \text{(Original MXFP4 Scaling)} \\[0.3em]
+&\quad\;\; \mathrm{B_{Q}} = \texttt{Round}\left(\,\mathrm{B_{S}}\,,\, \text{FP4}\,\right)  \quad\;\;\, \text{(Quantized FP4 Block)} \\[0.3em] 
+&\mathrm{S}_\text{T} =  \frac{\texttt{max}\left(\,\mathrm{S_{Q}}\,\right)}{64} \quad\quad \text{(E8M0 Tile Scale)} \\[0.3em]
+&\text{For every } \mathrm{B} \text{ in } \mathrm{T}: \\[0.3em]
+&\quad\;\; \mathrm{S}_\text{B} =  \frac{\mathrm{S_{Q}}}{\mathrm{S}_\text{T}} \quad\quad\quad\,\, \text{(E8M0 Block scale; Store in E4M0)} \\[0.3em]
+&\quad\;\; \mathrm{B_D} = \mathrm{B_Q} \cdot \mathrm{S_B} \quad\;\; \text{(Dequantized FP8 block for GEMM)} \\[0.3em] 
+&\mathrm{T_D} = \mathrm{B_D} \cdot \mathrm{S_{T}} \quad\quad\;\;\;\; \text{(Dequantized Tile after FP8 GEMM)} 
+\end{aligned}
+$$
+
+where $$\mathrm{T}$$ and $$\mathrm{B}$$ denote the $$128 \times 128$$ weight tile and the $$1 \times 32$$ weight block, respectively. $$\mathrm{S}_\text{T}$$ and $$\mathrm{S}_\text{B}$$ denote the tile scale and block scale, respectively. The subscripts $$_{\text{S}\,}$$, $$_{\text{Q}\,}$$, and $$_{\text{D}\,}$$ represent the scaled, quantized, and dequantized operand, respectively.
+
+There are several important details in the above recipe that are worth discussing:
+- When computing the tile scale $$\mathrm{S_{T}}$$, where does the magic number $$64$$ come from? It is to ensure the block scale $$\mathrm{S_B} \leq 64$$ and the dequantized block $$\mathrm{B_D} \leq 6 \times 64 = 384$$, which maximizes the utilization of FP8 quantization values<d-footnote>For example, choosing $$\mathrm{S_T} = \frac{\text{max}(\mathrm{S_Q})}{128} \implies \mathrm{B_D} < 768$$which may exceed the maximum FP8 value. Similarly, choosing $$\mathrm{S_T} = \frac{\text{max}(\mathrm{S_Q})}{32} \implies \mathrm{B_D} ≤ 192$$which can waste many FP8 quantization values. You may want to use some example tensors and try this out in Pytorch for better visualization.</d-footnote>. 
+- When computing the block scale $$\mathrm{S_{B}}$$, I leave a note saying that it can be stored in E4M0, which has a power-of-two range $$[\,2^{-6}, 2^8\,]$$. This allows the dequantized block $$\mathrm{B_D} = \mathrm{B_Q} \cdot \mathrm{S_{B}}$$ to be perfectly represented in FP8-E4M3 without overflow and underflow. **But does E4M0 introduce extra error compared to the original E8M0 block scale?** As discussed in the previous point, $$\mathrm{S_B} \leq 64 = 2^6$$ already falls within the upper bound of E4M0. The remaining concern is whether the smallest block scale is guaranteed to be larger than $$2^{-6}$$. Empirically, DeepSeek finds that their model weights satisfy this condition<d-footnote>I believe this condition holds for most LLMs. In general, prior work has observed that LLM weights tend to exhibit a small dynamic range, meaning their binary exponents have small difference and can be encoded with fewer bits.</d-footnote>. 
+
+**Hardware Implication**: With DeepSeek's hierarchical MXFP4 scaling, the $$128 \times 128 \times 1$$ mixed-precision GEMM flow becomes:
+<div style="text-align:center;">
+  <img src="/assets/img/blog/quant_codesign/DeepSeek_MXFP4_Hardware_2.png" width="100%" />
+  <figcaption style="font-size: 0.95em; margin-top: 8px;"></figcaption>
+</div> 
+Now, the entire $$128 \times 128$$ weight tile can be first dequantized to FP8, where each $$1 \times 32$$ weight block is multiplied by its E4M0 block scale. Then a $$128 \times 128 \times 1$$ FP8 GEMM is performed on the tensor core. Finally, the GEMM output is dequantized on the vector core by multiplying it with the two scales of weight tile and activation block. 
+
+Let's analyze the computation cost of dequantization before and after applying DeepSeek's hierarchical scaling. In the naive GEMM with single-level MXFP4 scaling, the vector core performs 1024 multiplications<d-footnote>Under a more efficient hardware implementation, these multiplications can become 8-bit exponent addition since the scale factors are E8M0.</d-footnote> and 512 accumulations. Whereas in the new GEMM with hierarchical scaling, only (128 + 1) multiplications and 128 accumulations<d-footnote>Although these accumulations are not shown in the above figure, they are required when the full LLM dot-product size is larger than 128.</d-footnote>.
+
+
 ## Acknowledgment
-Special thanks to [Xilai Dai](https://www.linkedin.com/in/xilai-dai) (Cornell University), [Dr. Chao Fang](https://micas.esat.kuleuven.be/team/chao-fang) (KU Leuven), and [Prof. Mohamed Abdelfattah](https://www.mohsaied.com) (Cornell University), for helping shape out the content of this blog. 
+- Special thanks to [Xilai Dai](https://www.linkedin.com/in/xilai-dai) (Cornell University), [Dr. Chao Fang](https://micas.esat.kuleuven.be/team/chao-fang) (KU Leuven), and [Prof. Mohamed Abdelfattah](https://www.mohsaied.com) (Cornell University), for helping shape out the content of this blog. 
+- For readers with a broad interest in Machine Learning Hardware and Systems, my advisor Mohamed Abdelfattah has a nice lecture series available on his [website](https://www.mohsaied.com/teaching/) and [Youtube](http://youtube.com/@mabdelfattah88/courses).
+- I decided to write this blog partly because I stumbled over Simon Boehm's amazing [blog](https://siboehm.com/articles/22/CUDA-MMM) about CUDA  Matmul kernel optimization. 
+- Drawings are largely made with [Excalidraw](https://excalidraw.com/). 
+
+
 
 <!-- 
 ## <sub>III-3. Enhanced MXFP4 and NVFP4</sub>
