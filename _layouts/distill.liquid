@@ -132,7 +132,7 @@
         {% if page.toc %}
           <d-contents>
             <nav class="figcaption">
-              <h3>Table of Contents</h3>
+              <h3 style="margin-bottom: 0.5em;">Table of Contents</h3>
               {% for section in page.toc %}
                 <div>
                   <a href="#{{ section.name | slugify }}">{{ section.name }}</a>
