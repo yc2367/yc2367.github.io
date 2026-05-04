@@ -96,7 +96,7 @@ Consider an $$\mathrm{N}$$-bit integer $$\mathrm{D_{N-1}\,{D_{N-2}\,\dots\,D_{0}
   
 - **Unsigned Representation**, with decimal value: 
   
-  $$\mathrm{D_{N-1}\,2^{N-1} + D_{N-2}\,2^{N-2} \,+\dots+ D_{0}\,2^{0}}$$
+  $$\mathrm{D_{N-1}\,2^{N-1} + D_{N-2}\,2^{N-2} + D_{N-3}\,2^{N-3} \,+\dots+ D_{0}\,2^{0}}$$
 
   <!-- This representation has a numerical range of $$[\,0\,,\,\mathrm{2^{N}-1}]$$.  -->
 
@@ -105,8 +105,8 @@ A floating-point representation is characterized by three components: **Sign (S)
 
 $$\mathrm{S \; \underbrace{E_{x-1}\dots E_{0}}_{\text{Exponent}} \; \underbrace{M_{y-1}\dots M_{0}}_{\text{Mantissa}}} \,=\, 
 \begin{cases} 
-\,(-1)^{\,\mathrm{S}} \,\cdot\, \mathrm{2^{E-B} \,\cdot\, 1.{M}} & \text{if } E\neq0 \\
-\,(-1)^{\,\mathrm{S}} \,\cdot\, \mathrm{2^{1-B} \;\cdot\, 0.{M}} & \text{if } E=0 
+\,(-1)^{\,\mathrm{S}} \,\cdot\, \mathrm{2^{E-B} \,\cdot\, 1.{M}} & \text{if } \mathrm{E}\neq0 \\
+\,(-1)^{\,\mathrm{S}} \,\cdot\, \mathrm{2^{1-B} \;\cdot\, 0.{M}} & \text{if } \mathrm{E}=0 
 \end{cases}$$
 
 where $$\mathrm{E}$$ and $$\mathrm{M}$$ are interpreted as unsigned integers, the constant $$\mathrm{B = {2^{\,x-1}-1}}$$ is a fixed "bias" that allows the actual exponent to be both positive and negative. Note that there is a leading bit before $$\mathrm{M}$$, which makes the actual mantissa equal to $$1.{\mathrm{M}}$$ or $$0.\mathrm{M}$$. This leading bit is often called the hidden bit as it does not need to be stored. Instead, it can be determined during runtime by checking whether the value is normal $$(\mathrm{E} \neq 0)$$ or subnormal $$(\mathrm{E} = 0)$$.
@@ -482,7 +482,7 @@ To measure the algorithmic performance of MX under the two rounding approaches f
 </tbody></table>
 
 
-### <sub>b. NVIDIA (NV) Approach</sub>
+### <sub>NVIDIA (NV) Approach</sub>
 Recall from [Section III-1](#iii-1-block-wise-quantization), if the scale factor is accurately represented (e.g., in FP32), then the maximum element can be accurately quantized without error. However, the E8M0 scale factor used in MX violates this condition and introduces error for the block's maximum element<d-footnote>Again, the "maximum element" refers to the element with maximum magnitude.</d-footnote>. This raises the question: **Can we minimize the quantization error of block maximum while still using an 8-bit scale factor?** 
 
 Let's try to understand the limitations of MX when quantizing the block maximum, $$\mathrm{B}_{\text{max}}$$. Again, for simplicity, assume $$\mathrm{B}_{\text{max}}$$ is a positive normal FP32 value: 
