@@ -369,19 +369,19 @@ The question is: **How can we reduce the cost of scale factors? The answer is su
 </div> 
 
 ### <sub>Microscaling (MX)</sub>
-MX is standardized by the Open Compute Project, and widely supported by recent AI chips such as AMD Radeon, Meta MTIA, and Microsoft MAIA. In this approach, the high-precision scale factor is quantized to an 8-bit power-of-two (E8M0), as described in the following equations: 
+MX is standardized by the Open Compute Project, and widely supported by recent AI chips such as AMD Radeon, Meta MTIA, and Microsoft MAIA. In this approach, the high-precision scale factor is quantized to an 8-bit power-of-two (E8M0). For example, the widely used MXFP4 quantization scheme can be expressed by the following equations: 
 
 $$
 \mathrm{S} = \frac{ |\mathrm{B}|_{\text{max}} }{ \mathrm{Q}_{\text{max}} } ; \ \ 
 \mathrm{S_{Q}} = 2^{\left\lceil\,\texttt{log2}\left( \,\mathrm{S} \,\right) \,\right\rceil} ; \ \ 
 \mathrm{B_S} = \frac{\mathrm{B}}{\mathrm{S_{Q}}} ; \ \
-\mathrm{B_Q} = \texttt{Round}\left(\,\mathrm{B_S}\,,\, \mathrm{Q}\,\right) ; \ \
+\mathrm{B_Q} = \texttt{Round}\left(\,\mathrm{B_S}\,,\, \text{FP4}\,\right) ; \ \
 \mathrm{B_D} = \mathrm{B_Q} \cdot \mathrm{S_{Q}}
 $$
 
-where $$\mathrm{B}$$ is the block to be quantized. After calculating the scale factor $$\mathrm{S}$$, we take its binary logarithm followed by a ceiling operation to obtain the integer exponent<d-footnote>When implementing this step in code, there is no need to explicitly compute the logarithm, which is very costly on hardware. Instead, this whole step can be efficiently implemented at the binary level using simple bitwise operations, as described in <a href="https://huggingface.co/deepseek-ai/DeepSeek-V3.2/blob/main/inference/kernel.py#L20">this code snippet</a> from DeepSeek.</d-footnote>. The quantized scale factor is the base-2 exponentiation of this integer exponent. The ceiling operation ensures that $$\mathrm{S}$$ is always *rounded up* to the nearest power-of-two that is larger than or equal to $$\mathrm{S}$$. This is different from the rounding mechanism for the scaled block element $$\mathrm{B_{S}\,}$$, which is *rounded (up or down)* to the nearest quantization value.
+where $$\mathrm{B}$$ is the block to be quantized, and $$\mathrm{Q}_{\text{max}} = 6$$ is the maximum FP4 quantization value. After calculating the scale factor $$\mathrm{S}$$, we take its binary logarithm followed by a ceiling operation to obtain the integer exponent<d-footnote>When implementing this step in code, there is no need to explicitly compute the logarithm, which is very costly on hardware. Instead, this whole step can be efficiently implemented at the binary level using simple bitwise operations, as described in <a href="https://huggingface.co/deepseek-ai/DeepSeek-V3.2/blob/main/inference/kernel.py#L20">this code snippet</a> from DeepSeek.</d-footnote>. The quantized scale factor is the base-2 exponentiation of this integer exponent. The ceiling operation ensures that $$\mathrm{S}$$ is always *rounded up* to the nearest power-of-two that is larger than or equal to $$\mathrm{S}$$. This is different from the rounding mechanism for the scaled block element $$\mathrm{B_{S}\,}$$, which is *rounded (up or down)* to the nearest quantization value.
 
-The purpose of rounding up during power-of-two scale factor quantization, is to ensure the scaled block $$\mathrm{B_{S}}$$ can always remains within the representable quantization range without overflow. Specifically, we want to ensure that: 
+The purpose of rounding up during the power-of-two scale factor quantization in MXFP4, is to ensure the scaled block $$\mathrm{B_{S}}$$ can always remains within the representable quantization range without significant overflow. Specifically, we want to ensure that: 
 
 $$\begin{aligned}
 |\mathrm{B_{S}}| \leq \mathrm{Q}_{\text{max}} 
@@ -391,9 +391,7 @@ $$\begin{aligned}
 \iff \mathrm{S_{Q}} \geq\, \mathrm{S}
 \end{aligned}$$
 
-Thus, to avoid overflow, the quantized scale factor should be larger than or equal to the original scale factor. 
-
-Interested readers may ask: **Why don't we use the normal rounding (up or down) mechanism when rounding the scale factor to its nearest power-of-two?** In fact, this is exactly what [the original MX quantizer from Microsoft](https://github.com/microsoft/microxcaling/blob/7bc41952de394f5cc5e782baf132e7c7542eb4e4/mx/mx_ops.py#L173) does when the block maximum's mantissa exceeds the quantization maximum's mantissa. However, this naive approach may cause significant overflow of the scaled block $$\mathrm{B_{S}\,}$$, leading to large saturation error when the quantization format has limited mantissa precision<d-footnote>Hence, you should never refer to that original implementation for MX quantization.</d-footnote>. To better explain this problem, I will use the popular MXFP4 format as an example, where each block is quantized to FP4-E2M1 that can represent $$\{\,0\,, \pm\,0.5\,, \pm\,1\,, \pm\,1.5\,, \pm\,2\,, \pm\,3\,, \pm\,4\,, \pm\,6\,\}$$. Let's analyze what happens to the block maximum, $$\mathrm{B}_{\text{max}\,}$$, when the scale factor is rounded (up or down) to its nearest power-of-two. For simplicity, I will assume $$\mathrm{B}_{\text{max}}$$ is a positive normal FP32 value, leading to the following equations for computing the scaled block maximum, $$\mathrm{B_{\text{max},\,S}}$$: 
+Interested readers may ask: **Why don't we use the normal rounding (up or down) mechanism when rounding the scale factor to its nearest power-of-two?** In fact, this is exactly what [the original MXFP4 quantizer from Microsoft](https://github.com/microsoft/microxcaling/blob/7bc41952de394f5cc5e782baf132e7c7542eb4e4/mx/mx_ops.py#L173) does when the block maximum's mantissa exceeds the quantization maximum's mantissa<d-footnote>In the original MXFP4 quantizer from Microsoft, the power-of-two block scale of MXFP4 is computed as $$\mathrm{S_{Q, \,\text{MXFP4}}} = 2^{\left\lfloor\,\texttt{log2}\left(\mathrm{B_{\text{max}}}\right)\,\right\rfloor \,-\, 2}$$</d-footnote>. However, this naive approach may cause significant overflow of the scaled block $$\mathrm{B_{S}\,}$$, leading to large saturation error for MXFP4 quantization<d-footnote>Hence, you should never refer to that original implementation for MXFP4 quantization. But you can refer to that for some MX formats such as MXINT4 quantization, whose quantized E8M0 scale is also computed as $$\mathrm{S_{Q, \,\text{MXINT4}}} = 2^{\left\lfloor\,\texttt{log2}\left(\mathrm{B_{\text{max}}}\right)\,\right\rfloor \,-\, 2}$$You may want to think why the MXINT4 scale can be quantized in this way even overflow occurs when the mantissa is larger than 1.75</d-footnote>. To better explain this problem, lLet's analyze what happens to the block maximum, $$\mathrm{B}_{\text{max}\,}$$, when the scale factor is rounded (up or down) to its nearest power-of-two. For simplicity, I will assume $$\mathrm{B}_{\text{max}}$$ is a positive normal FP32 value, leading to the following equations for computing the scaled block maximum, $$\mathrm{B_{\text{max},\,S}}$$: 
 
 $$
 \mathrm{S} = \frac{\mathrm{B}_{\text{max}}}{6} ; \ \  
@@ -412,7 +410,7 @@ $$
 \mathrm{S} = \frac{\mathrm{B}_{\text{max}}}{6} = \frac{ 2^{\,\mathrm{E\,'}} \cdot \mathrm{M\,'} }{ 2^2 \cdot 1.5 } =  2^{\,\mathrm{E\,'} - \,2} \cdot \frac{\mathrm{M\,'}}{1.5}
 $$
 
-Now, if $$\mathrm{M\,'} > 1.5$$<d-footnote>Assume the block maximum's mantissa is uniformly distributed between [1, 2), then we have a high probability of 50% that it exceeds 1.5</d-footnote>, which means the block maximum's mantissa exceeds that of the FP4 maximum. In addition, since $$\mathrm{M\,'} < 2$$ by definition of the floating-point representation, we have: 
+Now, consider the 50% case where $$\mathrm{M\,'} > 1.5$$<d-footnote>Assume the block maximum's mantissa is uniformly distributed between [1, 2), then we have a high probability of 50% that it exceeds 1.5</d-footnote>, and because $$\mathrm{M\,'} < 2$$ by definition of the floating-point representation, we have: 
 
 $$\begin{aligned}
 & 2^{\,\mathrm{E\,'} - \,2} \cdot \frac{1.5}{1.5} \,<\, \mathrm{S} \,<\, 2^{\,\mathrm{E\,'} - \,2} \cdot \frac{2}{1.5} \\[0.3em]
@@ -482,7 +480,7 @@ To measure the algorithmic performance of MX under the two rounding approaches f
 </tbody></table>
 
 
-### <sub>NVIDIA (NV) Approach</sub>
+### <sub>NVIDIA's (NV) Approach</sub>
 Recall from [Section III-1](#iii-1-block-wise-quantization), if the scale factor is accurately represented (e.g., in FP32), then the maximum element can be accurately quantized without error. However, the E8M0 scale factor used in MX violates this condition and introduces error for the block's maximum element<d-footnote>Again, the "maximum element" refers to the element with maximum magnitude.</d-footnote>. This raises the question: **Can we minimize the quantization error of block maximum while still using an 8-bit scale factor?** 
 
 Let's try to understand the limitations of MX when quantizing the block maximum, $$\mathrm{B}_{\text{max}}$$. Again, for simplicity, assume $$\mathrm{B}_{\text{max}}$$ is a positive normal FP32 value: 
