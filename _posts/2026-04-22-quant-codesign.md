@@ -369,7 +369,7 @@ The question is: **How can we reduce the cost of scale factors? The answer is su
 </div> 
 
 ### <sub>Microscaling (MX)</sub>
-MX is standardized by the Open Compute Project, and widely supported by recent AI chips such as AMD Radeon, Meta MTIA, and Microsoft MAIA. In this approach, the high-precision scale factor is quantized to an 8-bit power-of-two (E8M0). For example, the widely used MXFP4 quantization scheme can be expressed by the following equations: 
+MX is standardized by the Open Compute Project, and widely supported by recent AI chips such as AMD Radeon, Meta MTIA, and Microsoft MAIA. In this approach, the high-precision scale factor is quantized to an 8-bit power-of-two (E8M0). For example, the widely used MXFP4 quantization scheme can be expressed by the following equations<d-footnote>This is also applicable to other MXFP formats such as MXFP8, as described in <a href="https://arxiv.org/abs/2506.08027">this paper</a>.</d-footnote>: 
 
 $$
 \mathrm{S} = \frac{ |\mathrm{B}|_{\text{max}} }{ \mathrm{Q}_{\text{max}} } ; \ \ 
