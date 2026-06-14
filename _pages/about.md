@@ -19,7 +19,7 @@ navbar_fixed: true
 
 <!-- This is the work-in-progess branch for discussing typos and bugs. -->
 
-My name is Yuzong Chen, an autopilot engineer at Tesla. I am also a final-year PhD student at Cornell University, advised by [Prof. Mohamed Abdelfattah](https://www.mohsaied.com/). My current research focus on Algorithm-Hardware Co-Design for Machine Learning, with a special focus on Quantization Numerics, Reconfigurable Architectures, and Processing In-Memory. 
+My name is Yuzong Chen, an AI hardware engineer at Tesla. I am also a final-year PhD student at Cornell University, advised by [Prof. Mohamed Abdelfattah](https://www.mohsaied.com/). My current research focus on Algorithm-Hardware Co-Design for Machine Learning, with a special focus on Quantization Numerics, Reconfigurable Architectures, and Processing In-Memory. 
 
 Previously, I received my bachelor's degree in Electrical & Electronic Engineering from the Nanyang Technological University, Singapore. After graduation, I spent 3 years as a research staff at the Nanyang Technological University (advised by [Prof. Tony Tae-Hyoung Kim](https://sites.google.com/view/tonykim)) and the National University of Singapore (advised by [Prof. Heng Chun-Huat](https://online.ece.nus.edu.sg/staff/web.asp?id=elehch)). 
 
